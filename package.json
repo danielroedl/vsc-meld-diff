@@ -1,0 +1,86 @@
+{
+	"name": "meld-diff",
+	"displayName": "Meld Diff",
+	"description": "Use meld to compare files from visual studio code directly.",
+	"version": "1.0.0",
+	"publisher": "danielroedl",
+	"icon": "images/icon.png",
+	"license": "GPLv3",
+	"repository": {
+        "type": "git",
+		"url": "https://github.com/danielroedl/vsc-meld-diff"
+	},
+	"engines": {
+		"vscode": "^1.36.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:meld-diff.diffVisible",
+		"onCommand:meld-diff.diffCurrentToOtherOpen",
+		"onCommand:meld-diff.diffCurrentToOther",
+		"onCommand:meld-diff.diffFromFileListSelect",
+		"onCommand:meld-diff.diffFromFileList"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "meld-diff.diffVisible",
+				"title": "All visible documents (two or three)",
+				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffCurrentToOtherOpen",
+				"title": "Current file to one other open file in editor",
+				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffCurrentToOther",
+				"title": "Current file to one other file (not open in editor)",
+				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffFromFileListSelect",
+				"title": "Select for meld compare",
+				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffFromFileList",
+				"title": "Compare with selected for meld compare",
+				"category": "Meld Diff"
+			}
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"command": "meld-diff.diffFromFileListSelect",
+					"group": "Meld Diff@1"
+				},
+				{
+					"command": "meld-diff.diffFromFileList",
+					"group": "Meld Diff@2"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.6",
+		"@types/node": "^10.12.21",
+		"@types/vscode": "^1.36.0",
+		"glob": "^7.1.4",
+		"mocha": "^6.1.4",
+		"typescript": "^3.3.1",
+		"tslint": "^5.12.1",
+		"vscode-test": "^1.0.2"
+	}
+}
