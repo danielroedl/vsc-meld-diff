@@ -1,6 +1,6 @@
 {
 	"name": "meld-diff",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"displayName": "Meld Diff",
 	"description": "Use meld to compare files from visual studio code directly.",
 	"publisher": "danielroedl",

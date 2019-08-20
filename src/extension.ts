@@ -39,22 +39,25 @@ export function showListAndDiff(current: String, possible_diffs: String[]) {
 
 // workaround because there is no function to get all open editors from API
 export function doIt(current: String, possible_diffs: String[]) {
-	if (window.activeTextEditor) {
-		if (fillListDone) {
-			showListAndDiff(current, possible_diffs);
-		} else {
+	if (fillListDone) {
+		showListAndDiff(current, possible_diffs);
+	} else {
+		if (window.activeTextEditor) {
 			possible_diffs.push(window.activeTextEditor.document.fileName);
-			commands.executeCommand("workbench.action.nextEditor").then(_ => {
-				if (window.activeTextEditor) {
-					if (window.activeTextEditor.document.fileName != current) {
-						doIt(current, possible_diffs);
-					} else {
-						fillListDone = true;
-						showListAndDiff(current, possible_diffs);
-					}
-				}
-			});
 		}
+		commands.executeCommand("workbench.action.nextEditor").then(_ => {
+			if (window.activeTextEditor) {
+				if (window.activeTextEditor.document.fileName != current) {
+					doIt(current, possible_diffs);
+				} else {
+					fillListDone = true;
+					showListAndDiff(current, possible_diffs);
+				}
+			} else {
+				// the window is not a text editor, skip it
+				doIt(current, possible_diffs);
+			}
+		});
 	}
 }
 
@@ -106,7 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let open_files: String[] = [];
 
 		if (!window.activeTextEditor) {
-			window.showErrorMessage("Meld Diff:\nNo file selected for diff!")
+			window.showErrorMessage("Meld Diff:\nCurrent window is not a file!")
 			return;
 		}
 
