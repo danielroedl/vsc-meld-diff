@@ -6,19 +6,19 @@ There are five commands to do different ways to choose the files for comparing.
 
 Hit `Ctrl` + `Shift` + `P` to open the command menu and type `meld diff`.
 
-![](images/all_cmds.png)
+![All commands](images/all_cmds.png)
 
 # Detailed command information
 ## All visible documents
 To use this command two files have to be visible side by side.
 
-![](images/files_side_by_side.png)
+![Compare side by side files](images/files_side_by_side.png)
 
 ## Current file to one other open file in editor
 The current selected file will be the first to compare (left side in meld).
 The second file to compare (right side in meld) is selected by menu which shows all open files.
 
-![](images/compare_to_open_file.png)
+![Compare file to other open file](images/compare_to_open_file.png)
 
 ## Current file to one other file (not open in editor)
 The current selected file will be the first to compare (left side in meld).
@@ -29,11 +29,11 @@ Set the current selected file as the first to compare (left side in meld).
 
 This is also possible in the file list.
 
-![](images/select_for_compare.png)
+![Compare file to compare to from file list](images/select_for_compare.png)
 
 ## Compare with selected for meld compare
 Compare current file (right side in meld) to the file selected before.
 
 This is also possible in the file list.
 
-![](images/compare_to_selected.png)
+![Compare to selected from file list](images/compare_to_selected.png)

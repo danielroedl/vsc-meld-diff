@@ -1,15 +1,25 @@
 {
 	"name": "meld-diff",
+	"version": "1.0.2",
 	"displayName": "Meld Diff",
 	"description": "Use meld to compare files from visual studio code directly.",
-	"version": "1.0.0",
 	"publisher": "danielroedl",
+	"author": "danielroedl",
 	"icon": "images/icon.png",
-	"license": "GPLv3",
+	"license": "MIT",
 	"repository": {
         "type": "git",
 		"url": "https://github.com/danielroedl/vsc-meld-diff"
 	},
+	"keywords": [
+		"Diff",
+		"Compare",
+		"Meld"
+	],
+	"bugs": {
+		"url": "https://github.com/danielroedl/vsc-meld-diff/issues"
+	},
+	"homepage": "https://github.com/danielroedl/vsc-meld-diff",
 	"engines": {
 		"vscode": "^1.36.0"
 	},
