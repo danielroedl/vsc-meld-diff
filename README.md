@@ -1,12 +1,14 @@
-# Compare files with the tool meld directly from vscode
+# Compare files or folders with the tool meld directly from vscode
 
-This extension open two files in the external tool meld.
+This extension open two files (or folders) in the external tool meld.
 
-There are five commands to do different ways to choose the files for comparing.
+There are five commands to do different ways to choose the files for comparing. It is also possible to choose the files (or folders) from the file list.
 
-Hit `Ctrl` + `Shift` + `P` to open the command menu and type `meld diff`.
+Hit `Ctrl` + `Shift` + `P` to open the command menu and type `Meld Diff`.
 
 ![All commands](images/all_cmds.png)
+
+*Folder comparison is only possible from file list (see hint in command description 'Select for meld compare' and 'Compare with selected for meld compare')*
 
 # Detailed command information
 ## All visible documents
@@ -35,5 +37,16 @@ This is also possible in the file list.
 Compare current file (right side in meld) to the file selected before.
 
 This is also possible in the file list.
+
+![Compare to selected from file list](images/compare_to_selected.png)
+
+# Usage with file list (also folder comparison possible)
+## Select for meld compare
+Select the the first file or folder to compare (left side in meld) by right click on file list and hit '*Select for meld compare*'.
+
+![Compare file to compare to from file list](images/select_for_compare.png)
+
+## Compare with selected for meld compare
+Select the file or folder to compare to the file or folder selected before (right side in meld) by right click on file list and hit '*Compare with selected for meld compare*'.
 
 ![Compare to selected from file list](images/compare_to_selected.png)

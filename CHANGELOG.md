@@ -1,3 +1,6 @@
+## 1.0.4
+- change docs: add hits for folder compare
+
 ## 1.0.3
 - bug fix: correct handling of none test windows
 
