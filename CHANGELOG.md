@@ -1,3 +1,6 @@
+## 1.0.5
+- change icon
+
 ## 1.0.4
 - change docs: add hits for folder compare
 
