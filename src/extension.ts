@@ -91,12 +91,8 @@ export function activate(context: vscode.ExtensionContext) {
 			window.showErrorMessage("Meld Diff:\nCan't diff: Only one file is visible in editor!")
 			return;
 		}
-		if (open_files.length > 3) {
-			window.showErrorMessage("Meld Diff:\nCan't diff: More than three files are visible in editor!")
-			return;
-		}
 
-		cp.exec('meld ' + open_files.join(" "), (error: Error) => {
+		cp.exec('meld ' + open_files.filter(v => existsSync(v)).slice(0,3).join(" "), (error: Error) => {
 			if (error) {
 				if (error.message.match(/meld: not found/)) {
 					window.showErrorMessage("Meld Diff: meld is not installed!");
