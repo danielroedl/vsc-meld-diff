@@ -1,3 +1,8 @@
+## 1.0.6
+- filter only existing file
+- take the first 3 opened
+- add stderr output to error message
+
 ## 1.0.5
 - change icon
 

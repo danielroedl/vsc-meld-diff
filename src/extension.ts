@@ -1,17 +1,18 @@
 import * as vscode from 'vscode';
 
 import { window, commands } from 'vscode';
-import { posix } from 'path';
 import { existsSync, open } from 'fs';
 
 const cp = require('child_process')
 let fillListDone = false
 
-export function showMeld(file1: String, file2: String) {
-	cp.exec('meld ' + file1+ " " + file2, (error: Error) => {
+export function showMeld(files: String[]) {
+	cp.exec('meld ' + files.filter(v => existsSync(v.toString())).slice(0,3).join(" "), (error: Error, stdout: string, stderr: string) => {
 		if (error) {
 			if (error.message.match(/meld: not found/)) {
-				window.showErrorMessage("Meld Diff: meld is not installed!");
+				window.showErrorMessage("Meld Diff Error: Meld is not installed!");
+			} else {
+				window.showErrorMessage("Meld Diff Error: Error running meld! StdErr: " + stderr);
 			}
 		}
 	});
@@ -32,7 +33,7 @@ export function showListAndDiff(current: String, possible_diffs: String[]) {
 		placeHolder: 'Filename to diff'
 	}).then(result => {
 		if (existsSync(result)) {
-			showMeld(current, result);
+			showMeld([current, result]);
 		}
 	});
 }
@@ -92,13 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		cp.exec('meld ' + open_files.filter(v => existsSync(v)).slice(0,3).join(" "), (error: Error) => {
-			if (error) {
-				if (error.message.match(/meld: not found/)) {
-					window.showErrorMessage("Meld Diff: meld is not installed!");
-				}
-			}
-		});
+		showMeld(open_files);
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffCurrentToOtherOpen', () => {
@@ -163,7 +158,7 @@ export function activate(context: vscode.ExtensionContext) {
 			path = _.path;
 		}
 		if (selected.length > 0) {
-			showMeld(selected, path);
+			showMeld([selected, path]);
 		} else {
 			window.showErrorMessage("Meld Diff: First select a file to compare to!")
 		}
