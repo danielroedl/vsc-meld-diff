@@ -10,6 +10,10 @@ Hit `Ctrl` + `Shift` + `P` to open the command menu and type `Meld Diff`.
 
 *Folder comparison is only possible from file list (see hint in command description 'Select for meld compare' and 'Compare with selected for meld compare')*
 
+**Important:**
+Meld tool must be available on your system. In a command line the command `meld <file1> <file2>` should work.
+On Windows you maybe have to add the executable folder of meld to your PATH.
+
 # Detailed command information
 ## All visible documents
 To use this command two files have to be visible side by side.
