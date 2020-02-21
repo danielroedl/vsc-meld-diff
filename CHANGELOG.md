@@ -1,3 +1,6 @@
+## 1.0.10
+- add hint to readme that meld must be in PATH
+
 ## 1.0.9
 - bug fix not working compare from explorer pane on windows
 - bug fix not working compare to file not open in editor on windows
