@@ -30,6 +30,7 @@
 		"onCommand:meld-diff.diffVisible",
 		"onCommand:meld-diff.diffCurrentToOtherOpen",
 		"onCommand:meld-diff.diffCurrentToOther",
+		"onCommand:meld-diff.diffWithClipboard",
 		"onCommand:meld-diff.diffFromFileListSelect",
 		"onCommand:meld-diff.diffFromFileList"
 	],
@@ -49,6 +50,11 @@
 			{
 				"command": "meld-diff.diffCurrentToOther",
 				"title": "Current file to one other file (not open in editor)",
+				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffWithClipboard",
+				"title": "Diff with clipboard",
 				"category": "Meld Diff"
 			},
 			{
@@ -72,6 +78,13 @@
 					"command": "meld-diff.diffFromFileList",
 					"group": "Meld Diff@2"
 				}
+			],
+			"editor/context": [
+				{
+					"command": "meld-diff.diffWithClipboard",
+					"group": "Meld Diff@1",
+					"when": "editorTextFocus"
+				}
 			]
 		}
 	},
@@ -79,7 +92,8 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile",
+		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
@@ -87,10 +101,17 @@
 		"@types/mocha": "^5.2.6",
 		"@types/node": "^10.17.14",
 		"@types/vscode": "^1.42.0",
+		"@typescript-eslint/eslint-plugin": "^4.16.1",
+		"@typescript-eslint/parser": "^4.16.1",
+		"eslint": "^7.21.0",
 		"glob": "^7.1.6",
 		"mocha": "^6.2.2",
 		"tslint": "^5.20.1",
 		"typescript": "^3.7.5",
 		"vscode-test": "^1.3.0"
+	},
+	"dependencies": {
+		"child_process": "^1.0.2",
+		"stream-equal": "^2.0.1"
 	}
 }

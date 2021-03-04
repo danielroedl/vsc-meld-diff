@@ -1,34 +1,37 @@
 import * as vscode from 'vscode';
 
 import { window, commands } from 'vscode';
-import { existsSync, open } from 'fs';
+import { existsSync, writeFile, createReadStream } from 'fs';
+import * as os from 'os';
+import { join } from 'path';
+import * as streamEqual from 'stream-equal';
+import * as cp from 'child_process';
 
-const cp = require('child_process')
 let fillListDone = false
 
-export function showMeld(files: String[]) {
-	let cmd = 'meld "' + files.filter(v => existsSync(v.toString())).slice(0,3).join('" "') + '"';
+export function showMeld(files: string[]) {
+	const cmd = 'meld "' + files.filter(v => existsSync(v.toString())).slice(0, 3).join('" "') + '"';
 	console.log("Run: " + cmd);
 	cp.exec(
 		cmd,
-		(error: Error, stdout: string, stderr: string) => {
-		if (error) {
-			if (error.message.match(/meld: not found/)) {
-				window.showErrorMessage("Meld Diff Error: Meld is not installed!");
-			} else {
-				window.showErrorMessage("Meld Diff Error: Error running meld! StdErr: " + stderr);
+		(error: cp.ExecException | null, stdout: string, stderr: string) => {
+			if (error) {
+				if (error.message.match(/meld: not found/)) {
+					window.showErrorMessage("Meld Diff Error: Meld is not installed!")
+				} else {
+					window.showErrorMessage("Meld Diff Error: Error running meld! StdErr: " + stderr)
+				}
 			}
-		}
-	});
+		});
 }
 
-export function showListAndDiff(current: String, possible_diffs: String[]) {
+export function showListAndDiff(current: string, possible_diffs: string[]) {
 	// remove current editor
-	let possible = possible_diffs.filter(function(value, index, arr) {
+	const possible = possible_diffs.filter(function (value, index, arr) {
 		return value != current;
 	});
 
-	let a = Array();
+	const a: any[] | Thenable<any[]> = [];
 	possible.forEach(_ => {
 		a.push(_);
 	});
@@ -43,7 +46,7 @@ export function showListAndDiff(current: String, possible_diffs: String[]) {
 }
 
 // workaround because there is no function to get all open editors from API
-export function doIt(current: String, possible_diffs: String[]) {
+export function doIt(current: string, possible_diffs: string[]) {
 	if (fillListDone) {
 		showListAndDiff(current, possible_diffs);
 	} else {
@@ -66,8 +69,43 @@ export function doIt(current: String, possible_diffs: String[]) {
 	}
 }
 
+
+function rndName() {
+	return Math.random().toString(36).substr(2, 10);
+}
+
+/**
+ * Simple random file creation
+ * 
+ * @see https://github.com/microsoft/vscode/blob/main/extensions/emmet/src/test/testUtils.ts
+ */
+export function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?: string; prefix?: string; } = {}): Thenable<vscode.Uri> {
+	return new Promise((resolve, reject) => {
+		const tmpFile = join(os.tmpdir(), prefix + rndName());
+		writeFile(tmpFile, contents, (error) => {
+			if (error) {
+				return reject(error);
+			}
+
+			resolve(vscode.Uri.file(tmpFile));
+		});
+	});
+}
+
+export async function writeFileOnDisk(content: string): Promise<string> {
+	return (await createRandomFile({ contents: content })).fsPath;
+}
+
+export async function areFilesEqual(files: string[]): Promise<boolean> {
+	const [path1, path2] = files;
+	const readStream1 = createReadStream(path1);
+	const readStream2 = createReadStream(path2);
+
+	return await streamEqual(readStream1, readStream2);
+}
+
 export function activate(context: vscode.ExtensionContext) {
-	let open_files_event = Array();
+	const open_files_event: string[] = [];
 
 	vscode.workspace.onDidOpenTextDocument(event => {
 		// add file to array on opening
@@ -80,14 +118,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.workspace.onDidCloseTextDocument(event => {
 		//remove file from list on closing
-		let index = open_files_event.indexOf(event.fileName)
+		const index = open_files_event.indexOf(event.fileName)
 		if (fillListDone && index !== -1) {
 			open_files_event.splice(index, 1);
 		}
 	});
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffVisible', () => {
-		let open_files: String[] = [];
+		const open_files: string[] = [];
 		window.visibleTextEditors.forEach(editor => {
 			open_files.push(editor.document.fileName.toString());
 		});
@@ -101,7 +139,7 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffCurrentToOtherOpen', () => {
-		let open_files: String[] = [];
+		const open_files: string[] = [];
 
 		if (!window.activeTextEditor) {
 			window.showErrorMessage("Meld Diff:\nCurrent window is not a file!")
@@ -112,7 +150,7 @@ export function activate(context: vscode.ExtensionContext) {
 		open_files.push(window.activeTextEditor.document.fileName);
 
 		// let possible_diffs= Array();
-		let current = window.activeTextEditor.document.fileName;
+		const current = window.activeTextEditor.document.fileName;
 
 		doIt(current, open_files_event);
 	}));
@@ -123,12 +161,12 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		let current = window.activeTextEditor.document.fileName;
+		const current = window.activeTextEditor.document.fileName;
 
 		const options: vscode.OpenDialogOptions = {
 			canSelectMany: false,
 			openLabel: 'Diff'
-	   	};
+		};
 
 		window.showOpenDialog(options).then(_ => {
 			if (_) {
@@ -138,7 +176,47 @@ export function activate(context: vscode.ExtensionContext) {
 
 	}));
 
-	let selected:String = "";
+	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffWithClipboard', async () => {
+		const editor = window.activeTextEditor;
+		if (!editor) {
+			window.showErrorMessage("Meld Diff:\nCurrent window is not a file!");
+			return;
+		}
+
+		const clipboardContent = await vscode.env.clipboard.readText();
+		const clipboard = await writeFileOnDisk(clipboardContent);
+
+		//by default compare clipboard against current file
+		let sameContent;
+		let current = editor.document.fileName;
+		const selection = editor.selection;
+		if (!selection.isEmpty) { 
+			//compare against current selection
+			const editorContent = editor.document.getText(selection);
+			current = await writeFileOnDisk(editorContent);
+			sameContent = await areFilesEqual([current, clipboard]);
+		} else if (editor.document.isUntitled) {
+			//compare against untitled file
+			const editorContent = editor.document.getText();
+			current = await writeFileOnDisk(editorContent);
+			sameContent = await areFilesEqual([current, clipboard]);
+		} else if (editor.document.isDirty) {
+			//compore against dirty content but invoke meld with current saved file
+			const editorContent = editor.document.getText();
+			const tmpCheck = await writeFileOnDisk(editorContent);
+			sameContent = await areFilesEqual([tmpCheck, clipboard]);
+		} else {
+			sameContent = await areFilesEqual([current, clipboard]);
+		}
+
+		if (sameContent) {
+			window.showInformationMessage('No difference');
+		} else {
+			showMeld([current, clipboard]);
+		}
+	}));
+
+	let selected = "";
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffFromFileListSelect', (_) => {
 		if (! _) {
@@ -172,4 +250,6 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 }
 
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 export function deactivate() {}
