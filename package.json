@@ -54,7 +54,7 @@
 			},
 			{
 				"command": "meld-diff.diffWithClipboard",
-				"title": "Diff with clipboard",
+				"title": "Compare with clipboard",
 				"category": "Meld Diff"
 			},
 			{
