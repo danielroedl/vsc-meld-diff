@@ -8,12 +8,11 @@ import * as streamEqual from 'stream-equal';
 import * as cp from 'child_process';
 
 let fillListDone = false;
-let tmpFiles: string[] = [];
 
 export function showMeld(files: string[]) {
 	const cmd = 'meld "' + files.filter(v => existsSync(v.toString())).slice(0, 3).join('" "') + '"';
 	console.log("Run: " + cmd);
-	const process = cp.exec(
+	return cp.exec(
 		cmd,
 		(error: cp.ExecException | null, stdout: string, stderr: string) => {
 			if (error) {
@@ -24,8 +23,6 @@ export function showMeld(files: string[]) {
 				}
 			}
 		});
-
-	process.on('exit', cleanupTmpFiles);
 }
 
 export function showListAndDiff(current: string, possible_diffs: string[]) {
@@ -96,9 +93,7 @@ export function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?:
 }
 
 export async function writeFileOnDisk(content: string): Promise<string> {
-	const path = (await createRandomFile({ contents: content })).fsPath;
-	tmpFiles.push(path);
-	return path;
+	return (await createRandomFile({ contents: content })).fsPath;
 }
 
 export async function areFilesEqual(files: string[]): Promise<boolean> {
@@ -109,13 +104,12 @@ export async function areFilesEqual(files: string[]): Promise<boolean> {
 	return await streamEqual(readStream1, readStream2);
 }
 
-export function cleanupTmpFiles() {
-	tmpFiles.forEach((file) => unlink(file, (err) => {
+export function cleanupTmpFiles(files: string[]) {
+	files.forEach((file) => unlink(file, (err) => {
 		if (err) {
 			console.log('Unable to delete file: ', file);
 		}
 	}));
-	tmpFiles = [];
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -197,8 +191,10 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
+		const filesToRemove: string[] = [];
 		const clipboardContent = await vscode.env.clipboard.readText();
 		const clipboard = await writeFileOnDisk(clipboardContent);
+		filesToRemove.push(clipboard);
 
 		//by default compare clipboard against current file
 		let sameContent;
@@ -208,16 +204,19 @@ export function activate(context: vscode.ExtensionContext) {
 			//compare against current selection
 			const editorContent = editor.document.getText(selection);
 			current = await writeFileOnDisk(editorContent);
+			filesToRemove.push(current);
 			sameContent = await areFilesEqual([current, clipboard]);
 		} else if (editor.document.isUntitled) {
 			//compare against untitled file
 			const editorContent = editor.document.getText();
 			current = await writeFileOnDisk(editorContent);
+			filesToRemove.push(current);
 			sameContent = await areFilesEqual([current, clipboard]);
 		} else if (editor.document.isDirty) {
 			//compore against dirty content but invoke meld with current saved file
 			const editorContent = editor.document.getText();
 			const tmpCheck = await writeFileOnDisk(editorContent);
+			filesToRemove.push(tmpCheck);
 			sameContent = await areFilesEqual([tmpCheck, clipboard]);
 		} else {
 			sameContent = await areFilesEqual([current, clipboard]);
@@ -225,9 +224,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (sameContent) {
 			window.showInformationMessage('No difference');
-			cleanupTmpFiles();
+			cleanupTmpFiles(filesToRemove);
 		} else {
-			showMeld([current, clipboard]);
+			const process = showMeld([current, clipboard]);
+			process.on('exit', () => cleanupTmpFiles(filesToRemove));
 		}
 	}));
 
