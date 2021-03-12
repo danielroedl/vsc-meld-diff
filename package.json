@@ -31,6 +31,7 @@
 		"onCommand:meld-diff.diffCurrentToOtherOpen",
 		"onCommand:meld-diff.diffCurrentToOther",
 		"onCommand:meld-diff.diffWithClipboard",
+		"onCommand:meld-diff.diffSavedVersion",
 		"onCommand:meld-diff.diffFromFileListSelect",
 		"onCommand:meld-diff.diffFromFileList"
 	],
@@ -39,22 +40,27 @@
 		"commands": [
 			{
 				"command": "meld-diff.diffVisible",
-				"title": "All visible documents (two or three)",
+				"title": "Compare all visible documents (two or three)",
 				"category": "Meld Diff"
 			},
 			{
 				"command": "meld-diff.diffCurrentToOtherOpen",
-				"title": "Current file to one other open file in editor",
+				"title": "Compare current file with one other open file in editor",
 				"category": "Meld Diff"
 			},
 			{
 				"command": "meld-diff.diffCurrentToOther",
-				"title": "Current file to one other file (not open in editor)",
+				"title": "Compare current file with one other file (not open in editor)",
 				"category": "Meld Diff"
 			},
 			{
 				"command": "meld-diff.diffWithClipboard",
 				"title": "Compare with clipboard",
+				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffSavedVersion",
+				"title": "Compare current file with saved version",
 				"category": "Meld Diff"
 			},
 			{
@@ -87,6 +93,10 @@
 				{
 					"command": "meld-diff.diffFromFileList",
 					"group": "Meld Diff@2"
+				},
+				{
+					"command": "meld-diff.diffSavedVersion",
+					"group": "Meld Diff@3"
 				}
 			],
 			"editor/context": [
@@ -114,6 +124,11 @@
 					"type": "string",
 					"default": "\"$1\" \"$2\" \"$3\"",
 					"description": "The arguments given to the Diff Command for three way diff.\n($1 is the first, $2 is the second file and $3 is the third file)"
+				},
+				"meld-diff.cleanUpTempFilesOnCodeClose": {
+					"type": "boolean",
+					"default": true,
+					"description": "Temporary files (created for clipboard or unsaved comparison) are deleted if visual studio code is closed before meld"
 				}
 			}
 		  }
