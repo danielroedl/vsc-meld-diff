@@ -79,6 +79,16 @@
 					"group": "Meld Diff@2"
 				}
 			],
+			"editor/title/context": [
+				{
+					"command": "meld-diff.diffFromFileListSelect",
+					"group": "Meld Diff@1"
+				},
+				{
+					"command": "meld-diff.diffFromFileList",
+					"group": "Meld Diff@2"
+				}
+			],
 			"editor/context": [
 				{
 					"command": "meld-diff.diffWithClipboard",
