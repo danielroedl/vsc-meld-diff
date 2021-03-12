@@ -2,7 +2,7 @@
 	"name": "meld-diff",
 	"version": "1.0.10",
 	"displayName": "Meld Diff",
-	"description": "Use meld to compare files or folders from visual studio code directly.",
+	"description": "Use meld (or other like WinMerge, Beyond Compare, ...) to compare files or folders from visual studio code directly.",
 	"publisher": "danielroedl",
 	"author": "danielroedl",
 	"icon": "images/icon.png",
