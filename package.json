@@ -96,7 +96,27 @@
 					"when": "editorTextFocus"
 				}
 			]
-		}
+		},
+		"configuration": {
+			"title": "Meld Diff",
+			"properties": {
+				"meld-diff.diffCommand": {
+					"type": "string",
+					"default": "meld",
+					"description": "The command to use for compare. Could be a absolute path."
+				},
+				"meld-diff.diffArgumentsTwoWay": {
+					"type": "string",
+					"default": "\"$1\" \"$2\"",
+					"description": "The arguments given to the Diff Command for two way diff.\n($1 is the first and $2 is the second file)"
+				},
+				"meld-diff.diffArgumentsThreeWay": {
+					"type": "string",
+					"default": "\"$1\" \"$2\" \"$3\"",
+					"description": "The arguments given to the Diff Command for three way diff.\n($1 is the first, $2 is the second file and $3 is the third file)"
+				}
+			}
+		  }
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

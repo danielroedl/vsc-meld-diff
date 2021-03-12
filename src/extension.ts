@@ -10,7 +10,30 @@ import * as cp from 'child_process';
 let fillListDone = false;
 
 export function showMeld(files: string[]) {
-	const cmd = 'meld "' + files.filter(v => existsSync(v.toString())).slice(0, 3).join('" "') + '"';
+	const diffTool = vscode.workspace.getConfiguration('meld-diff').diffCommand;
+	const diffFiles = files.filter(v => existsSync(v.toString())).slice(0, 3);
+
+	// construct cmd
+	let argsConf = "";
+	if (diffFiles.length == 2) {
+		argsConf = vscode.workspace.getConfiguration('meld-diff').diffArgumentsTwoWay;
+	} else if (diffFiles.length == 3) {
+		argsConf = vscode.workspace.getConfiguration('meld-diff').diffArgumentsThreeWay;
+	} else {
+		window.showErrorMessage("Meld Diff Error: Minimum two files are neede to diff!");
+		return;
+	}
+	//replace placeholder in argsConf
+	if (diffFiles.length >= 2) {
+		argsConf = argsConf.replace("$1", diffFiles[0])
+		argsConf = argsConf.replace("$2", diffFiles[1])
+	}
+	if (diffFiles.length == 3) {
+		argsConf = argsConf.replace("$3", diffFiles[2])
+	}
+
+	const cmd = diffTool + " " + argsConf;
+
 	console.log("Run: " + cmd);
 	return cp.exec(
 		cmd,
@@ -19,7 +42,7 @@ export function showMeld(files: string[]) {
 				if (error.message.match(/meld: not found/)) {
 					window.showErrorMessage("Meld Diff Error: Meld is not installed!");
 				} else {
-					window.showErrorMessage("Meld Diff Error: Error running meld! StdErr: " + stderr);
+					window.showErrorMessage("Meld Diff Error: Error running diff command! StdErr: " + stderr)
 				}
 			}
 		});
@@ -76,7 +99,7 @@ function rndName() {
 
 /**
  * Simple random file creation
- * 
+ *
  * @see https://github.com/microsoft/vscode/blob/main/extensions/emmet/src/test/testUtils.ts
  */
 export function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?: string; prefix?: string; } = {}): Thenable<vscode.Uri> {
@@ -135,6 +158,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffVisible', () => {
 		const open_files: string[] = [];
 		window.visibleTextEditors.forEach(editor => {
+			// TODO prüfen editor.document.isDirty ... wenn dirty, dann statt file ein tmp file mit 'editor.document.getText()' verwenden
+			// TODO in settings einstellbar machen was verwendet werden soll
 			open_files.push(editor.document.fileName.toString());
 		});
 
