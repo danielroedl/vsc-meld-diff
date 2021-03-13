@@ -96,7 +96,7 @@ The commands '*Select for meld compare*', '*Compare with selected for meld compa
 
 # Customize settings
 ## Use other tools than meld
-In the settings for Meld Diff it is possible to customize the command to use. Also the given arguments can be configured.
+In the settings for Meld Diff it is possible to customize the tool to use. Instead of Meld other tools like WinMerge or Beyond Compare can be used. Also the given arguments can be configured.
 
 The default values are:
 

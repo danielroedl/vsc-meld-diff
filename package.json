@@ -14,7 +14,9 @@
 	"keywords": [
 		"Diff",
 		"Compare",
-		"Meld"
+		"Meld",
+		"WinMerge",
+		"Beyond Compare"
 	],
 	"bugs": {
 		"url": "https://github.com/danielroedl/vsc-meld-diff/issues"
