@@ -3,6 +3,9 @@
 - add compare to saved version of the file
 - add tool command to settings, so also other tools than meld could be used
 - compare all visible sorts the files by modification time and takes the three newest if there are more than three files visible
+- add comparison of unsaved editors
+
+- change to eslint
 
 ## 1.0.10
 - add hint to readme that meld must be in PATH
