@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 
 import { window, commands } from 'vscode';
-import { existsSync, writeFile, createReadStream, unlink, statSync } from 'fs';
+import { existsSync, writeFile, createReadStream, createWriteStream, unlink, statSync } from 'fs';
 import * as os from 'os';
-import { join, basename } from 'path';
+import { join, basename, dirname } from 'path';
 import * as streamEqual from 'stream-equal';
 import * as cp from 'child_process';
 
@@ -403,6 +403,122 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		} else {
 			window.showErrorMessage("First select a file to compare with!");
+		}
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffScm', async (_) => {
+		if (! _) {
+			window.showErrorMessage("Meld Diff Error: First select a changed file in source control window.");
+		}
+
+		let selectedFile = _.resourceUri._fsPath;
+		let selectedFileBasename = basename(selectedFile);
+		let selectedFileDir = dirname(selectedFile);
+
+		const simpleGit = await import('simple-git');
+
+		filesToRemove = [];
+
+		switch (_.type) {
+			case 5: // unstaged changes
+				// get content of staging version of the selected file
+				simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
+					stdOut.on('data', async (data: any) => {
+						// write staged content to temp file
+						const staged = await writeTempFileOnDisk(data.toString('utf8'), "staged_" + selectedFileBasename + "_");
+						addFileToRemove(staged);
+
+						// start meld
+						const process = showMeld([staged, selectedFile]);
+						if (process && filesToRemove.length > 0) {
+							const files = [...filesToRemove];
+							process.on('exit', () => cleanupTmpFiles(files));
+						}
+					});
+				}).raw(
+					"show",  ":" + selectedFileBasename
+				).catch((err: any) => {
+					window.showErrorMessage("Meld Diff Error: " + err);
+				});
+				break;
+
+			case 0: // staged changes
+				// get content of staging version of the selected file
+				simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
+					stdOut.on('data', async (data: any) => {
+						// write staged content to temp file
+						const staged = await writeTempFileOnDisk(data.toString('utf8'), "STAGED_" + selectedFileBasename + "_");
+						addFileToRemove(staged);
+
+						// get content of HEAD version of the selected file
+						simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
+							stdOut.on('data', async (data: any) => {
+								// write HEAD content to temp file
+								const head = await writeTempFileOnDisk(data.toString('utf8'), "HEAD_" + selectedFileBasename + "_");
+								addFileToRemove(head);
+
+								// start meld
+								const process = showMeld([head, staged]);
+								if (process && filesToRemove.length > 0) {
+									const files = [...filesToRemove];
+									process.on('exit', () => cleanupTmpFiles(files));
+								}
+							});
+						}).raw(
+							"show",  "HEAD:" + selectedFileBasename
+						).catch((err: any) => {
+							window.showErrorMessage("Meld Diff Error: " + err);
+						});
+					});
+				}).raw(
+					"show",  ":" + selectedFileBasename
+				).catch((err: any) => {
+					window.showErrorMessage("Meld Diff Error: " + err);
+				});
+				break;
+
+			case 16: // merge conflicts
+				// get content of head version of the selected file
+				simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
+					stdOut.on('data', async (data: any) => {
+						// write HEAD content to temp file
+						const head = await writeTempFileOnDisk(data.toString('utf8'), "Current_" + selectedFileBasename + "_");
+						addFileToRemove(head);
+
+						// get content of incoming version of the selected file
+						simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
+							stdOut.on('data', async (data: any) => {
+								// write incoming content to temp file
+								const incoming = await writeTempFileOnDisk(data.toString('utf8'), "Incoming_" + selectedFileBasename + "_");
+								addFileToRemove(incoming);
+
+								// start meld
+								const process = showMeld([head, selectedFile, incoming]);
+								if (process && filesToRemove.length > 0) {
+									const files = [...filesToRemove];
+									process.on('exit', () => cleanupTmpFiles(files));
+								}
+							});
+						}).raw(
+							"show",  "MERGE_HEAD:" + selectedFileBasename
+						).catch((err: any) => {
+							window.showErrorMessage("Meld Diff Error: " + err);
+						});
+					});
+				}).raw(
+					"show",  "ORIG_HEAD:" + selectedFileBasename
+				).catch((err: any) => {
+					window.showErrorMessage("Meld Diff Error: " + err);
+				});
+				break;
+
+			case 7: // untracked file
+				window.showInformationMessage("No diff possible for untracked file!");
+				break;
+
+			default:
+				window.showErrorMessage("Meld Diff Error: Scm diff type " + _.type + " not supported.");
+				break;
 		}
 	}));
 }

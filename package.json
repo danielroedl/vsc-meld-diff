@@ -35,7 +35,8 @@
 		"onCommand:meld-diff.diffWithClipboard",
 		"onCommand:meld-diff.diffSavedVersion",
 		"onCommand:meld-diff.diffFromFileListSelect",
-		"onCommand:meld-diff.diffFromFileList"
+		"onCommand:meld-diff.diffFromFileList",
+		"onCommand:meld-diff.diffScm"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -74,6 +75,11 @@
 				"command": "meld-diff.diffFromFileList",
 				"title": "Compare with selected for meld compare",
 				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffScm",
+				"title": "Open with meld diff (git scm)",
+				"category": "Meld Diff"
 			}
 		],
 		"menus": {
@@ -107,6 +113,12 @@
 					"group": "Meld Diff@1",
 					"when": "editorTextFocus"
 				}
+			],
+			"scm/resourceState/context": [
+				{
+					"command": "meld-diff.diffScm",
+					"when": "scmProvider == git"
+				}
 			]
 		},
 		"configuration": {
@@ -133,7 +145,7 @@
 					"description": "Temporary files (created for clipboard or unsaved comparison) are deleted if visual studio code is closed before meld"
 				}
 			}
-		  }
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -158,6 +170,7 @@
 	},
 	"dependencies": {
 		"child_process": "^1.0.2",
+		"simple-git": "^2.46.0",
 		"stream-equal": "^2.0.1"
 	}
 }
