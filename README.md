@@ -66,12 +66,21 @@ If the selection is not equal meld will be started comparing the saved file with
 
 This command is also available in the [editor context menu](#usage-with-editor-context-menu).
 
-## Compare with saved version of the file
+## Compare current file with saved version
 Compare the changed version in the current editor with it's saved version.
 
 Change the contend in an editor and call the function. The changed content will be compared with the saved content in meld.
 
 This command is also available in the [editor title context menu](#usage-with-editor-title-context-menu).
+
+## Open with meld diff (git scm)
+It is possible to open a diff or merge conflict of a file from the Source Control window with meld (only for git).
+
+Therefore the command '*Open with meld diff (git scm)*' can be selected from the context menu.
+
+![Open changed file from scm](images/open_with_meld_diff_git.png)
+
+All versions of the file that are not in the current workspace that are needed for the diff (e.g for diff of HEAD version to staged version) are only temporary and are deleted after meld is closed.
 
 # Usage with file list (also folder comparison possible)
 ## Select for meld compare
