@@ -1,3 +1,6 @@
+## 1.2.0
+- add new command to open diff from source code window (for git)
+
 ## 1.1.0
 - add compare to clipboard
 - add compare to saved version of the file
