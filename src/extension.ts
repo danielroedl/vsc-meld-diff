@@ -436,7 +436,7 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 					});
 				}).raw(
-					"show",  ":" + selectedFileBasename
+					"show",  ":./" + selectedFileBasename
 				).catch((err: any) => {
 					window.showErrorMessage("Meld Diff Error: " + err);
 				});
@@ -465,13 +465,13 @@ export function activate(context: vscode.ExtensionContext) {
 								}
 							});
 						}).raw(
-							"show",  "HEAD:" + selectedFileBasename
+							"show",  "HEAD:./" + selectedFileBasename
 						).catch((err: any) => {
 							window.showErrorMessage("Meld Diff Error: " + err);
 						});
 					});
 				}).raw(
-					"show",  ":" + selectedFileBasename
+					"show",  ":./" + selectedFileBasename
 				).catch((err: any) => {
 					window.showErrorMessage("Meld Diff Error: " + err);
 				});
@@ -500,13 +500,13 @@ export function activate(context: vscode.ExtensionContext) {
 								}
 							});
 						}).raw(
-							"show",  "MERGE_HEAD:" + selectedFileBasename
+							"show",  "MERGE_HEAD:./" + selectedFileBasename
 						).catch((err: any) => {
 							window.showErrorMessage("Meld Diff Error: " + err);
 						});
 					});
 				}).raw(
-					"show",  "ORIG_HEAD:" + selectedFileBasename
+					"show",  "ORIG_HEAD:./" + selectedFileBasename
 				).catch((err: any) => {
 					window.showErrorMessage("Meld Diff Error: " + err);
 				});

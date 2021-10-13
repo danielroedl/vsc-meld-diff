@@ -1,3 +1,6 @@
+## 1.2.1
+- bug fix for meld diff on scm for files in sub folders
+
 ## 1.2.0
 - add new command to open diff from source code window (for git)
 
