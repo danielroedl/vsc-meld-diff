@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { window, commands } from 'vscode';
-import { existsSync, writeFile, createReadStream, createWriteStream, unlink, statSync } from 'fs';
+import { existsSync, writeFile, createReadStream, unlink, statSync } from 'fs';
 import * as os from 'os';
 import { join, basename, dirname } from 'path';
 import * as streamEqual from 'stream-equal';
@@ -11,12 +11,12 @@ let fillListDone = false;
 let filesToRemove: string[] = [];
 const filesToRemoveGlobal: string[] = [];
 
-export function addFileToRemove(file: string) {
+function addFileToRemove(file: string) {
 	filesToRemove.push(file);
 	filesToRemoveGlobal.push(file);
 }
 
-export function showMeld(files: string[]) {
+function showMeld(files: string[]) {
 	const diffTool = vscode.workspace.getConfiguration('meld-diff').diffCommand;
 	const diffFiles = files.filter(v => existsSync(v.toString())).slice(0, 3);
 
@@ -55,7 +55,7 @@ export function showMeld(files: string[]) {
 		});
 }
 
-export function showListAndDiff(current: string, possible_diffs: string[], filesToRemove: string[]) {
+function showListAndDiff(current: string, possible_diffs: string[], filesToRemove: string[]) {
 	// remove current editor
 	const possible = possible_diffs.filter(function (value, index, arr) {
 		return value != current;
@@ -80,7 +80,7 @@ export function showListAndDiff(current: string, possible_diffs: string[], files
 }
 
 // workaround because there is no function to get all open editors from API
-export function doIt(current: string, possible_diffs: string[], filesToRemove: string[]) {
+function doIt(current: string, possible_diffs: string[], filesToRemove: string[]) {
 	if (fillListDone) {
 		showListAndDiff(current, possible_diffs, filesToRemove);
 	} else {
@@ -112,7 +112,7 @@ function rndName() {
  *
  * @see https://github.com/microsoft/vscode/blob/main/extensions/emmet/src/test/testUtils.ts
  */
-export function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?: string; prefix?: string; } = {}): Thenable<vscode.Uri> {
+function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?: string; prefix?: string; } = {}): Thenable<vscode.Uri> {
 	return new Promise((resolve, reject) => {
 		const tmpFile = join(os.tmpdir(), prefix + rndName());
 		writeFile(tmpFile, contents, (error) => {
@@ -125,11 +125,11 @@ export function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?:
 	});
 }
 
-export async function writeTempFileOnDisk(content: string, prefix: string = "tmp_"): Promise<string> {
+async function writeTempFileOnDisk(content: string, prefix: string = "tmp_"): Promise<string> {
 	return (await createRandomFile({ contents: content, prefix: prefix })).fsPath;
 }
 
-export async function areFilesEqual(files: string[]): Promise<boolean> {
+async function areFilesEqual(files: string[]): Promise<boolean> {
 	const [path1, path2] = files;
 	const readStream1 = createReadStream(path1);
 	const readStream2 = createReadStream(path2);
@@ -137,7 +137,7 @@ export async function areFilesEqual(files: string[]): Promise<boolean> {
 	return await streamEqual(readStream1, readStream2);
 }
 
-export function cleanupTmpFiles(files: string[]) {
+function cleanupTmpFiles(files: string[]) {
 	files.forEach((file) => unlink(file, (err) => {
 		if (err) {
 			console.log('Unable to delete file: ', file);
@@ -150,7 +150,7 @@ export function cleanupTmpFiles(files: string[]) {
 	}));
 }
 
-export async function getFileNameOfDocument(document: vscode.TextDocument) {
+async function getFileNameOfDocument(document: vscode.TextDocument) {
 	if (document.isUntitled) {
 		//compare untitled file or changed content of file instead of saved file
 		let prefix = "untitled_";
@@ -163,6 +163,33 @@ export async function getFileNameOfDocument(document: vscode.TextDocument) {
 	} else {
 		return { name: document.fileName, tmp: false };
 	}
+}
+
+interface Callback {
+	(tmpFile: string, error: any): void;
+}
+
+async function runGit(selectedFile: string, gitCmd: string[], prefix: string, callback: Callback) {
+	let selectedFileBasename = basename(selectedFile);
+	let selectedFileDir = dirname(selectedFile);
+
+	const simpleGit = await import('simple-git');
+	simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
+		stdOut.on('data', async (data: any) => {
+			// write staged content to temp file
+			const staged = await writeTempFileOnDisk(data.toString('utf8'), prefix + "_" + selectedFileBasename + "_");
+			addFileToRemove(staged);
+
+			if (! existsSync(staged)) {
+				callback("", "Meld Diff Error: Can't create temp file!");
+			}
+
+			// start meld
+			callback(staged, null);
+		});
+	}).raw(gitCmd).catch((err: any) => {
+		callback("", "Meld Diff Error: " + err);
+	});
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -408,7 +435,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffScm', async (_) => {
 		if (! _) {
-			window.showErrorMessage("Meld Diff Error: First select a changed file in source control window.");
+			window.showErrorMessage("Meld Diff Error: First select a changed file in source control window and use context menu.");
+			return;
 		}
 
 		let selectedFile = _.resourceUri._fsPath;
@@ -422,98 +450,67 @@ export function activate(context: vscode.ExtensionContext) {
 		switch (_.type) {
 			case 5: // unstaged changes
 				// get content of staging version of the selected file
-				simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
-					stdOut.on('data', async (data: any) => {
-						// write staged content to temp file
-						const staged = await writeTempFileOnDisk(data.toString('utf8'), "staged_" + selectedFileBasename + "_");
-						addFileToRemove(staged);
-
-						// start meld
-						const process = showMeld([staged, selectedFile]);
-						if (process && filesToRemove.length > 0) {
-							const files = [...filesToRemove];
-							process.on('exit', () => cleanupTmpFiles(files));
-						}
-					});
-				}).raw(
-					"show",  ":./" + selectedFileBasename
-				).catch((err: any) => {
-					window.showErrorMessage("Meld Diff Error: " + err);
+				runGit(selectedFile, ["show",  ":./" + selectedFileBasename], "staged", (staged, err) => {
+					if (err) {
+						return window.showErrorMessage(err);
+					}
+					// start meld
+					const process = showMeld([staged, selectedFile]);
+					if (process && filesToRemove.length > 0) {
+						const files = [...filesToRemove];
+						process.on('exit', () => cleanupTmpFiles(files));
+					}
 				});
 				break;
 
 			case 0: // staged changes
 				// get content of staging version of the selected file
-				simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
-					stdOut.on('data', async (data: any) => {
-						// write staged content to temp file
-						const staged = await writeTempFileOnDisk(data.toString('utf8'), "STAGED_" + selectedFileBasename + "_");
-						addFileToRemove(staged);
-
-						// get content of HEAD version of the selected file
-						simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
-							stdOut.on('data', async (data: any) => {
-								// write HEAD content to temp file
-								const head = await writeTempFileOnDisk(data.toString('utf8'), "HEAD_" + selectedFileBasename + "_");
-								addFileToRemove(head);
-
-								// start meld
-								const process = showMeld([head, staged]);
-								if (process && filesToRemove.length > 0) {
-									const files = [...filesToRemove];
-									process.on('exit', () => cleanupTmpFiles(files));
-								}
-							});
-						}).raw(
-							"show",  "HEAD:./" + selectedFileBasename
-						).catch((err: any) => {
-							window.showErrorMessage("Meld Diff Error: " + err);
-						});
+				runGit(selectedFile, ["show",  ":./" + selectedFileBasename], "staged", (staged, err) => {
+					if (err) {
+						return window.showErrorMessage(err);
+					}
+					// get content of head version of the selected file
+					runGit(selectedFile, ["show",  "HEAD:./" + selectedFileBasename], "head", (head, err) => {
+						if (err) {
+							return window.showErrorMessage(err);
+						}
+						// start meld
+						const process = showMeld([head, staged]);
+						if (process && filesToRemove.length > 0) {
+							const files = [...filesToRemove];
+							process.on('exit', () => cleanupTmpFiles(files));
+						}
 					});
-				}).raw(
-					"show",  ":./" + selectedFileBasename
-				).catch((err: any) => {
-					window.showErrorMessage("Meld Diff Error: " + err);
 				});
 				break;
 
 			case 16: // merge conflicts
 				// get content of head version of the selected file
-				simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
-					stdOut.on('data', async (data: any) => {
-						// write HEAD content to temp file
-						const head = await writeTempFileOnDisk(data.toString('utf8'), "Current_" + selectedFileBasename + "_");
-						addFileToRemove(head);
-
-						// get content of incoming version of the selected file
-						simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
-							stdOut.on('data', async (data: any) => {
-								// write incoming content to temp file
-								const incoming = await writeTempFileOnDisk(data.toString('utf8'), "Incoming_" + selectedFileBasename + "_");
-								addFileToRemove(incoming);
-
-								// start meld
-								const process = showMeld([head, selectedFile, incoming]);
-								if (process && filesToRemove.length > 0) {
-									const files = [...filesToRemove];
-									process.on('exit', () => cleanupTmpFiles(files));
-								}
-							});
-						}).raw(
-							"show",  "MERGE_HEAD:./" + selectedFileBasename
-						).catch((err: any) => {
-							window.showErrorMessage("Meld Diff Error: " + err);
-						});
+				runGit(selectedFile, ["show",  "ORIG_HEAD:./" + selectedFileBasename], "current", (head, err) => {
+					if (err) {
+						return window.showErrorMessage(err);
+					}
+					// get content of incoming version of the selected file
+					runGit(selectedFile, ["show",  "MERGE_HEAD:./" + selectedFileBasename], "incoming", (incoming, err) => {
+						if (err) {
+							return window.showErrorMessage(err);
+						}
+						// start meld
+						const process = showMeld([head, selectedFile, incoming]);
+						if (process && filesToRemove.length > 0) {
+							const files = [...filesToRemove];
+							process.on('exit', () => cleanupTmpFiles(files));
+						}
 					});
-				}).raw(
-					"show",  "ORIG_HEAD:./" + selectedFileBasename
-				).catch((err: any) => {
-					window.showErrorMessage("Meld Diff Error: " + err);
 				});
 				break;
 
 			case 7: // untracked file
-				window.showInformationMessage("No diff possible for untracked file!");
+				window.showInformationMessage("No diff possible for untracked files!");
+				break;
+
+			case 1: // staged new file
+				window.showInformationMessage("No diff possible for files not yet commited!");
 				break;
 
 			default:
