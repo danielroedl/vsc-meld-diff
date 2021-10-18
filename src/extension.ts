@@ -169,15 +169,19 @@ interface Callback {
 	(tmpFile: string, error: any): void;
 }
 
-async function runGit(selectedFile: string, gitCmd: string[], prefix: string, callback: Callback) {
+async function runGit(selectedFile: string, gitCmd: string, prefix: string, callback: Callback) {
 	let selectedFileBasename = basename(selectedFile);
 	let selectedFileDir = dirname(selectedFile);
 
 	const simpleGit = await import('simple-git');
+	let tmpData = ""
 	simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
 		stdOut.on('data', async (data: any) => {
+			tmpData += data.toString('utf8');
+		});
+		stdOut.on('end', async (data: any) => {
 			// write staged content to temp file
-			const staged = await writeTempFileOnDisk(data.toString('utf8'), prefix + "_" + selectedFileBasename + "_");
+			const staged = await writeTempFileOnDisk(tmpData, prefix + "_" + selectedFileBasename + "_");
 			addFileToRemove(staged);
 
 			if (! existsSync(staged)) {
@@ -187,7 +191,9 @@ async function runGit(selectedFile: string, gitCmd: string[], prefix: string, ca
 			// start meld
 			callback(staged, null);
 		});
-	}).raw(gitCmd).catch((err: any) => {
+	}).raw(
+		[ "show", gitCmd + selectedFileBasename ]
+	).catch((err: any) => {
 		callback("", "Meld Diff Error: " + err);
 	});
 }
@@ -440,17 +446,13 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		let selectedFile = _.resourceUri._fsPath;
-		let selectedFileBasename = basename(selectedFile);
-		let selectedFileDir = dirname(selectedFile);
-
-		const simpleGit = await import('simple-git');
 
 		filesToRemove = [];
 
 		switch (_.type) {
 			case 5: // unstaged changes
 				// get content of staging version of the selected file
-				runGit(selectedFile, ["show",  ":./" + selectedFileBasename], "staged", (staged, err) => {
+				runGit(selectedFile, ":./", "staged", (staged, err) => {
 					if (err) {
 						return window.showErrorMessage(err);
 					}
@@ -465,12 +467,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 			case 0: // staged changes
 				// get content of staging version of the selected file
-				runGit(selectedFile, ["show",  ":./" + selectedFileBasename], "staged", (staged, err) => {
+				runGit(selectedFile, ":./", "staged", (staged, err) => {
 					if (err) {
 						return window.showErrorMessage(err);
 					}
 					// get content of head version of the selected file
-					runGit(selectedFile, ["show",  "HEAD:./" + selectedFileBasename], "head", (head, err) => {
+					runGit(selectedFile, "HEAD:./", "head", (head, err) => {
 						if (err) {
 							return window.showErrorMessage(err);
 						}
@@ -486,12 +488,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 			case 16: // merge conflicts
 				// get content of head version of the selected file
-				runGit(selectedFile, ["show",  "ORIG_HEAD:./" + selectedFileBasename], "current", (head, err) => {
+				runGit(selectedFile, "ORIG_HEAD:./", "current", (head, err) => {
 					if (err) {
 						return window.showErrorMessage(err);
 					}
 					// get content of incoming version of the selected file
-					runGit(selectedFile, ["show",  "MERGE_HEAD:./" + selectedFileBasename], "incoming", (incoming, err) => {
+					runGit(selectedFile, "MERGE_HEAD:./", "incoming", (incoming, err) => {
 						if (err) {
 							return window.showErrorMessage(err);
 						}
