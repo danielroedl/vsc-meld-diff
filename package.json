@@ -1,8 +1,8 @@
 {
 	"name": "meld-diff",
-	"version": "1.2.3",
+	"version": "1.2.4",
 	"displayName": "Meld Diff",
-	"description": "Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files or folders from visual studio code directly.",
+	"description": "Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files, folders, clipboard or git changes from visual studio code directly.",
 	"publisher": "danielroedl",
 	"author": "danielroedl",
 	"icon": "images/icon.png",
@@ -17,7 +17,9 @@
 		"Meld",
 		"WinMerge",
 		"Beyondcompare",
-		"Beyond-compare"
+		"Beyond-compare",
+		"git","merge-conflict",
+		"clipboard"
 	],
 	"bugs": {
 		"url": "https://github.com/danielroedl/vsc-meld-diff/issues"

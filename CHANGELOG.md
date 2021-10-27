@@ -1,3 +1,6 @@
+## 1.2.4
+- bug fixes and change of the readme
+
 ## 1.2.1
 - bug fix for meld diff on scm for files in sub folders
 

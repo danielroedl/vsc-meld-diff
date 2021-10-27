@@ -1,8 +1,8 @@
-# Compare files or folders with the tool meld (or other like WinMerge, Beyond Compare, ...) directly from vs code
+# Compare files, folders, clipboard or git changes with the tool meld (or other like WinMerge, Beyond Compare, ...) directly from vs code
 
-This extension open two files (or folders) in the external tool meld (or ony other diff tool you want).
+This extension open two files (or folders) in the external tool meld (or ony other diff tool you want). It is also possible to compare editor context or text selection with the clipboard or to use it with the git source control.
 
-There are five commands to do different ways to choose the files for comparing. It is also possible to choose the files (or folders) from the file list.
+There are several commands to do different ways of comparing. It is also possible to choose the files (or folders) from the file list.
 
 Hit `Ctrl` + `Shift` + `P` to open the command menu and type `Meld Diff`.
 
@@ -13,8 +13,29 @@ Hit `Ctrl` + `Shift` + `P` to open the command menu and type `Meld Diff`.
 **Important:**
 Meld tool must be available on your system. In a command line the command `meld <file1> <file2>` should work.
 On Windows you maybe have to add the executable folder of meld to your PATH.
+If this is not possible the command can be changed to an absolute path (see [Customize settings](#customize-settings)).
 
 It is also possible to change the compare tool (see [Customize settings](#customize-settings)).
+
+Table of contents:
+- [Compare files, folders, clipboard or git changes with the tool meld (or other like WinMerge, Beyond Compare, ...) directly from vs code](#compare-files-folders-clipboard-or-git-changes-with-the-tool-meld-or-other-like-winmerge-beyond-compare--directly-from-vs-code)
+- [Detailed command information](#detailed-command-information)
+  - [Compare all visible documents (two or three)](#compare-all-visible-documents-two-or-three)
+  - [Compare current file with one other open file in editor](#compare-current-file-with-one-other-open-file-in-editor)
+  - [Compare current file with one other file (not open in editor)](#compare-current-file-with-one-other-file-not-open-in-editor)
+  - [Select for meld compare](#select-for-meld-compare)
+  - [Compare with selected for meld compare](#compare-with-selected-for-meld-compare)
+  - [Compare with clipboard](#compare-with-clipboard)
+  - [Compare current file with saved version](#compare-current-file-with-saved-version)
+  - [Open with meld diff (git scm)](#open-with-meld-diff-git-scm)
+- [Usage with file list (also folder comparison possible)](#usage-with-file-list-also-folder-comparison-possible)
+  - [Select for meld compare](#select-for-meld-compare-1)
+  - [Compare with selected for meld compare](#compare-with-selected-for-meld-compare-1)
+- [Usage with editor context menu](#usage-with-editor-context-menu)
+- [Usage with editor title context menu](#usage-with-editor-title-context-menu)
+- [Customize settings](#customize-settings)
+  - [Use other tools than meld](#use-other-tools-than-meld)
+  - [Don't delete temp files if visual studio code is closed before meld](#dont-delete-temp-files-if-visual-studio-code-is-closed-before-meld)
 
 # Detailed command information
 This chapter describes every command in detail.
