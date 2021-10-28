@@ -488,12 +488,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 			case 16: // merge conflicts
 				// get content of head version of the selected file
-				runGit(selectedFile, "ORIG_HEAD:./", "current", (head, err) => {
+				runGit(selectedFile, ":2:./", "current", (head, err) => {
 					if (err) {
 						return window.showErrorMessage(err);
 					}
 					// get content of incoming version of the selected file
-					runGit(selectedFile, "MERGE_HEAD:./", "incoming", (incoming, err) => {
+					runGit(selectedFile, ":3:./", "incoming", (incoming, err) => {
 						if (err) {
 							return window.showErrorMessage(err);
 						}

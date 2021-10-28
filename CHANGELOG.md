@@ -1,3 +1,6 @@
+## 1.2.5
+- change git cmd to get file contents for solving merge requests
+
 ## 1.2.4
 - bug fixes and change of the readme
 
