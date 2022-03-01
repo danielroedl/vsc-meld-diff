@@ -1,3 +1,8 @@
+## 1.3.0
+- add output channel messages for better analyses of errors
+- add compare all selected files/folders using meld
+- add phrase 'using meld' to commands which not including meld before
+
 ## 1.2.5
 - change git cmd to get file contents for solving merge requests
 

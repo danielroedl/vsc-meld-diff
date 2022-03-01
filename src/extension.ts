@@ -10,6 +10,7 @@ import * as cp from 'child_process';
 let fillListDone = false;
 let filesToRemove: string[] = [];
 const filesToRemoveGlobal: string[] = [];
+const outputChannel = vscode.window.createOutputChannel(`MeldDiff`);
 
 function addFileToRemove(file: string) {
 	filesToRemove.push(file);
@@ -27,7 +28,7 @@ function showMeld(files: string[]) {
 	} else if (diffFiles.length == 3) {
 		argsConf = vscode.workspace.getConfiguration('meld-diff').diffArgumentsThreeWay;
 	} else {
-		window.showErrorMessage("Meld Diff Error: Minimum two files are neede to diff!");
+		window.showErrorMessage("Meld Diff Error: Minimum two files are needed to diff!");
 		return;
 	}
 	//replace placeholder in argsConf
@@ -41,7 +42,7 @@ function showMeld(files: string[]) {
 
 	const cmd = diffTool + " " + argsConf;
 
-	console.log("Run: " + cmd);
+	outputChannel.appendLine("Run: " + cmd);
 	return cp.exec(
 		cmd,
 		(error: cp.ExecException | null, stdout: string, stderr: string) => {
@@ -140,7 +141,7 @@ async function areFilesEqual(files: string[]): Promise<boolean> {
 function cleanupTmpFiles(files: string[]) {
 	files.forEach((file) => unlink(file, (err) => {
 		if (err) {
-			console.log('Unable to delete file: ', file);
+			outputChannel.appendLine('Unable to delete tmp file: ' + file);
 		}
 		// remove entry from global list
 		const index = filesToRemoveGlobal.indexOf(file);
@@ -392,6 +393,21 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let selected = "";
 
+	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffFromFileListMultiple', (_, selectedFiles) => {
+		if (selectedFiles) {
+			let files = [];
+			console.log(typeof selectedFiles[0]);
+			for (let i=0; i < selectedFiles.length; i++) {
+				files.push(selectedFiles[i].path);
+			}
+
+			outputChannel.appendLine("Compare multiple files: " + files);
+			showMeld(files);
+		} else {
+			window.showInformationMessage('Command can only be used from file list.');
+		}
+	}));
+
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffFromFileListSelect', (_) => {
 		if (!_) {
 			if (window.activeTextEditor) {
@@ -407,7 +423,7 @@ export function activate(context: vscode.ExtensionContext) {
 		} else {
 			selected = _.fsPath;
 		}
-		console.log("Select for meld compare: " + selected);
+		outputChannel.appendLine("Select for meld compare: " + selected);
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffFromFileList', async (_) => {
@@ -527,7 +543,7 @@ export function deactivate() {
 	if (vscode.workspace.getConfiguration('meld-diff').cleanUpTempFilesOnCodeClose) {
 		filesToRemoveGlobal.forEach((file) => unlink(file, (err) => {
 			if (err) {
-				console.log('Unable to delete file: ', file);
+				outputChannel.appendLine('Unable to delete tmp file: ' + file);
 			}
 		}));
 	}

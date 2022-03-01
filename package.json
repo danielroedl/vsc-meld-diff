@@ -1,6 +1,6 @@
 {
 	"name": "meld-diff",
-	"version": "1.2.5",
+	"version": "1.3.0",
 	"displayName": "Meld Diff",
 	"description": "Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files, folders, clipboard or git changes from visual studio code directly.",
 	"publisher": "danielroedl",
@@ -18,7 +18,8 @@
 		"WinMerge",
 		"Beyondcompare",
 		"Beyond-compare",
-		"git","merge-conflict",
+		"git",
+		"merge-conflict",
 		"clipboard"
 	],
 	"bugs": {
@@ -39,34 +40,35 @@
 		"onCommand:meld-diff.diffSavedVersion",
 		"onCommand:meld-diff.diffFromFileListSelect",
 		"onCommand:meld-diff.diffFromFileList",
-		"onCommand:meld-diff.diffScm"
+		"onCommand:meld-diff.diffScm",
+		"onCommand:meld-diff.diffFromFileListMultiple"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "meld-diff.diffVisible",
-				"title": "Compare all visible documents (two or three)",
+				"title": "Compare all visible documents (two or three) using meld",
 				"category": "Meld Diff"
 			},
 			{
 				"command": "meld-diff.diffCurrentToOtherOpen",
-				"title": "Compare current file with one other open file in editor",
+				"title": "Compare current file with one other open file in editor using meld",
 				"category": "Meld Diff"
 			},
 			{
 				"command": "meld-diff.diffCurrentToOther",
-				"title": "Compare current file with one other file (not open in editor)",
+				"title": "Compare current file with one other file (not open in editor) using meld",
 				"category": "Meld Diff"
 			},
 			{
 				"command": "meld-diff.diffWithClipboard",
-				"title": "Compare with clipboard",
+				"title": "Compare with clipboard using meld",
 				"category": "Meld Diff"
 			},
 			{
 				"command": "meld-diff.diffSavedVersion",
-				"title": "Compare current file with saved version",
+				"title": "Compare current file with saved version using meld",
 				"category": "Meld Diff"
 			},
 			{
@@ -77,6 +79,11 @@
 			{
 				"command": "meld-diff.diffFromFileList",
 				"title": "Compare with selected for meld compare",
+				"category": "Meld Diff"
+			},
+			{
+				"command": "meld-diff.diffFromFileListMultiple",
+				"title": "Compare all selected files/folders using meld",
 				"category": "Meld Diff"
 			},
 			{
@@ -94,6 +101,11 @@
 				{
 					"command": "meld-diff.diffFromFileList",
 					"group": "Meld Diff@2"
+				},
+				{
+					"command": "meld-diff.diffFromFileListMultiple",
+					"group": "Meld Diff@3",
+					"when": "listMultiSelection"
 				}
 			],
 			"editor/title/context": [
