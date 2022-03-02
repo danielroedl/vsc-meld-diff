@@ -71,14 +71,14 @@ This command is also available in the [editor title context menu](#usage-with-ed
 ## Select for meld compare
 Set the current selected file as the first file for the comparison (left side in meld).
 
-This command is also available in the [file list](#usage-with-file-list-also-folder-comparison-possible) and the [editor title context menu](#usage-with-editor-title-context-menu).
+This command is also available in the [file list](#usage-with-file-list-also-folder-comparison-possible) (only if one element is selected) and the [editor title context menu](#usage-with-editor-title-context-menu).
 
 ![Compare file to compare to from file list](images/select_for_compare.png)
 
 ## Compare with selected for meld compare
 Compare the current file (right side in meld) with the file selected before by '*Select for meld compare*'.
 
-This command is also available in the [file list](#usage-with-file-list-also-folder-comparison-possible) and the [editor title context menu](#usage-with-editor-title-context-menu).
+This command is also available in the [file list](#usage-with-file-list-also-folder-comparison-possible) (only if one element is selected and an element for meld compare is selected before) and the [editor title context menu](#usage-with-editor-title-context-menu).
 
 ![Compare to selected from file list](images/compare_to_selected.png)
 
@@ -110,16 +110,22 @@ Compare all in file list selected files or folder using meld.
 
 This option is only available in the file list and only if more than one file is selected.
 
+**Command in context menu only available if multiple elements are selected in list!**
+
 # Usage with file list (also folder comparison possible)
 ## Select for meld compare
 Select the first file or folder to compare (left side in meld) by right click on file list and hit '*Select for meld compare*'.
 
 ![Compare file to compare to from file list](images/select_for_compare.png)
 
+**Command in context menu only shown if one element is selected!**
+
 ## Compare with selected for meld compare
 Select the file or folder to compare to the file or folder selected before (right side in meld) by right click on file list and hit '*Compare with selected for meld compare*'.
 
 ![Compare to selected from file list](images/compare_to_selected.png)
+
+**Command in context menu only if one element is selected and an element for meld compare was selected before!**
 
 ## Compare all selected files/folders using meld
 See [Compare all selected files/folders using meld](#compare-all-selected-filesfolders-using-meld) above.

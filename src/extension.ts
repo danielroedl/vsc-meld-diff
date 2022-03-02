@@ -438,6 +438,7 @@ export function activate(context: vscode.ExtensionContext) {
 		} else {
 			selected = _.fsPath;
 		}
+		vscode.commands.executeCommand('setContext', 'meld-diff.FileSelectedForMeldDiff', true);
 		outputChannel.appendLine("Select for meld compare: " + selected);
 	}));
 

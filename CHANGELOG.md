@@ -1,3 +1,11 @@
+## 1.3.2
+- improve messages
+- Don't compare files and directories
+- Don't show context menu entries every time
+
+## 1.3.1
+- fix path error on windows using compare all selected files/folders using meld
+
 ## 1.3.0
 - add output channel messages for better analyses of errors
 - add compare all selected files/folders using meld
