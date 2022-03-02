@@ -21,15 +21,30 @@ function showMeld(files: string[]) {
 	const diffTool = vscode.workspace.getConfiguration('meld-diff').diffCommand;
 	const diffFiles = files.filter(v => existsSync(v.toString())).slice(0, 3);
 
+	if (diffFiles.length < 2) {
+		window.showErrorMessage("Meld Diff Error: Minimum two files are needed to diff!");
+		return;
+	}
+
+	// files should not be compared with directories because this is not possible
+	let fileInDiffFiles = false;
+	let directoriesInDiffFiles = false;
+	diffFiles.forEach(entry => {
+		let stat = statSync(entry);
+		fileInDiffFiles = fileInDiffFiles || stat.isFile();
+		directoriesInDiffFiles = directoriesInDiffFiles || stat.isDirectory();
+	});
+	if (fileInDiffFiles && directoriesInDiffFiles) {
+		window.showErrorMessage("Meld Diff Error: Meld can't compare files with directories!");
+		return;
+	}
+
 	// construct cmd
 	let argsConf = "";
 	if (diffFiles.length == 2) {
 		argsConf = vscode.workspace.getConfiguration('meld-diff').diffArgumentsTwoWay;
 	} else if (diffFiles.length == 3) {
 		argsConf = vscode.workspace.getConfiguration('meld-diff').diffArgumentsThreeWay;
-	} else {
-		window.showErrorMessage("Meld Diff Error: Minimum two files are needed to diff!");
-		return;
 	}
 	//replace placeholder in argsConf
 	if (diffFiles.length >= 2) {
