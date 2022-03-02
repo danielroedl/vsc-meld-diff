@@ -398,7 +398,7 @@ export function activate(context: vscode.ExtensionContext) {
 			let files = [];
 			console.log(typeof selectedFiles[0]);
 			for (let i=0; i < selectedFiles.length; i++) {
-				files.push(selectedFiles[i].path);
+				files.push(selectedFiles[i].fsPath);
 			}
 
 			outputChannel.appendLine("Compare multiple files: " + files);
