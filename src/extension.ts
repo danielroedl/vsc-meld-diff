@@ -236,7 +236,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (open_files.length == 0) {
 				fileCount = "No files are";
 			}
-			window.showErrorMessage("Can't compare! " + fileCount + " visible in editor!");
+			window.showErrorMessage("Meld Diff Error: Can't compare! " + fileCount + " visible in editor!");
 			return;
 		}
 
@@ -262,7 +262,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffCurrentToOtherOpen', async () => {
 		if (!window.activeTextEditor) {
-			window.showErrorMessage("Current window is not an editor!");
+			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
@@ -277,7 +277,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffCurrentToOther', async () => {
 		if (!window.activeTextEditor) {
-			window.showErrorMessage("Current window is not an editor!")
+			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
@@ -307,7 +307,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffWithClipboard', async () => {
 		const editor = window.activeTextEditor;
 		if (!editor) {
-			window.showErrorMessage("Current window is not an editor!");
+			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
@@ -343,7 +343,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		if (sameContent) {
-			window.showInformationMessage('No difference');
+			window.showInformationMessage('Meld Diff: No difference');
 			cleanupTmpFiles(filesToRemove);
 		} else {
 			const process = showMeld([current, clipboard]);
@@ -357,17 +357,17 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffSavedVersion', async () => {
 		const editor = window.activeTextEditor;
 		if (!editor) {
-			window.showErrorMessage("Current window is not an editor!");
+			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
 		if (editor.document.isUntitled) {
-			window.showErrorMessage("No saved version found to compare with!");
+			window.showErrorMessage("Meld Diff Error: No saved version found to compare with!");
 			return;
 		}
 
 		if (!editor.document.isDirty) {
-			window.showInformationMessage("No difference to saved version of the file.");
+			window.showInformationMessage("Meld Diff: No difference to saved version of the file.");
 			return;
 		}
 
@@ -380,7 +380,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const sameContent = await areFilesEqual([current, currentSaved]);
 
 		if (sameContent) {
-			window.showInformationMessage('No difference to saved version of the file.');
+			window.showInformationMessage('Meld Diff: No difference to saved version of the file.');
 			cleanupTmpFiles(filesToRemove);
 		} else {
 			const process = showMeld([current, currentSaved]);
@@ -404,7 +404,7 @@ export function activate(context: vscode.ExtensionContext) {
 			outputChannel.appendLine("Compare multiple files: " + files);
 			showMeld(files);
 		} else {
-			window.showInformationMessage('Command can only be used from file list.');
+			window.showInformationMessage('Meld Diff: Command can only be used from file list.');
 		}
 	}));
 
@@ -412,12 +412,12 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!_) {
 			if (window.activeTextEditor) {
 				if (window.activeTextEditor.document.isUntitled) {
-					window.showErrorMessage("Unsaved editors can not be selected for meld diff comparison!");
+					window.showErrorMessage("Meld Diff Error: Unsaved editors can not be selected for meld diff comparison!");
 					return;
 				}
 				selected = window.activeTextEditor.document.fileName;
 			} else {
-				window.showErrorMessage("Current window is not an editor!");
+				window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
 				return;
 			}
 		} else {
@@ -438,7 +438,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 				path = fileName.name;
 			} else {
-				window.showErrorMessage("Current window is not an editor!");
+				window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
 				return;
 			}
 		} else {
@@ -451,7 +451,7 @@ export function activate(context: vscode.ExtensionContext) {
 				process.on('exit', () => cleanupTmpFiles(files));
 			}
 		} else {
-			window.showErrorMessage("First select a file to compare with!");
+			window.showErrorMessage("Meld Diff Error: First select a file to compare with!");
 		}
 	}));
 
@@ -524,11 +524,11 @@ export function activate(context: vscode.ExtensionContext) {
 				break;
 
 			case 7: // untracked file
-				window.showInformationMessage("No diff possible for untracked files!");
+				window.showInformationMessage("Meld Diff: No diff possible for untracked files!");
 				break;
 
 			case 1: // staged new file
-				window.showInformationMessage("No diff possible for files not yet commited!");
+				window.showInformationMessage("Meld Diff: No diff possible for files not yet commited!");
 				break;
 
 			default:
