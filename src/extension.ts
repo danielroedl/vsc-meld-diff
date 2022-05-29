@@ -18,7 +18,14 @@ function addFileToRemove(file: string) {
 }
 
 function showMeld(files: string[]) {
-	const diffTool = vscode.workspace.getConfiguration('meld-diff').diffCommand;
+	let diffTool = vscode.workspace.getConfiguration('meld-diff').diffCommand;
+	if (diffTool.match(/(?<!\\) /)) {
+		// diffTool path includes not escaped spaces so it must be enclosed in quotes
+		if (! diffTool.match(/^(["']).*\1$/)) {
+			// the diffTool is not enclosed in quotes
+			diffTool = '"' + diffTool +'"'
+		}
+	}
 	const diffFiles = files.filter(v => existsSync(v.toString())).slice(0, 3);
 
 	if (diffFiles.length < 2) {

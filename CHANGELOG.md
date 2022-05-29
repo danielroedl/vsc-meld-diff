@@ -1,3 +1,6 @@
+## 1.3.3
+- fix issue with meld paths with spaces
+
 ## 1.3.2
 - improve messages
 - Don't compare files and directories
