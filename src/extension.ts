@@ -23,7 +23,7 @@ function showMeld(files: string[]) {
 		// diffTool path includes not escaped spaces so it must be enclosed in quotes
 		if (! diffTool.match(/^(["']).*\1$/)) {
 			// the diffTool is not enclosed in quotes
-			diffTool = '"' + diffTool +'"'
+			diffTool = '"' + diffTool + '"';
 		}
 	}
 	const diffFiles = files.filter(v => existsSync(v.toString())).slice(0, 3);
@@ -37,7 +37,7 @@ function showMeld(files: string[]) {
 	let fileInDiffFiles = false;
 	let directoriesInDiffFiles = false;
 	diffFiles.forEach(entry => {
-		let stat = statSync(entry);
+		const stat = statSync(entry);
 		fileInDiffFiles = fileInDiffFiles || stat.isFile();
 		directoriesInDiffFiles = directoriesInDiffFiles || stat.isDirectory();
 	});
@@ -55,11 +55,11 @@ function showMeld(files: string[]) {
 	}
 	//replace placeholder in argsConf
 	if (diffFiles.length >= 2) {
-		argsConf = argsConf.replace("$1", diffFiles[0])
-		argsConf = argsConf.replace("$2", diffFiles[1])
+		argsConf = argsConf.replace("$1", diffFiles[0]);
+		argsConf = argsConf.replace("$2", diffFiles[1]);
 	}
 	if (diffFiles.length == 3) {
-		argsConf = argsConf.replace("$3", diffFiles[2])
+		argsConf = argsConf.replace("$3", diffFiles[2]);
 	}
 
 	const cmd = diffTool + " " + argsConf;
@@ -72,7 +72,7 @@ function showMeld(files: string[]) {
 				if (error.message.match(/meld: not found/)) {
 					window.showErrorMessage("Meld Diff Error: Meld is not installed!");
 				} else {
-					window.showErrorMessage("Meld Diff Error: Error running diff command! StdErr: " + stderr)
+					window.showErrorMessage("Meld Diff Error: Error running diff command! StdErr: " + stderr);
 				}
 			}
 		});
@@ -148,7 +148,7 @@ function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?: string
 	});
 }
 
-async function writeTempFileOnDisk(content: string, prefix: string = "tmp_"): Promise<string> {
+async function writeTempFileOnDisk(content: string, prefix = "tmp_"): Promise<string> {
 	return (await createRandomFile({ contents: content, prefix: prefix })).fsPath;
 }
 
@@ -193,11 +193,11 @@ interface Callback {
 }
 
 async function runGit(selectedFile: string, gitCmd: string, prefix: string, callback: Callback) {
-	let selectedFileBasename = basename(selectedFile);
-	let selectedFileDir = dirname(selectedFile);
+	const selectedFileBasename = basename(selectedFile);
+	const selectedFileDir = dirname(selectedFile);
 
 	const simpleGit = await import('simple-git');
-	let tmpData = ""
+	let tmpData = "";
 	simpleGit(selectedFileDir).outputHandler((cmd: any, stdOut: any) => {
 		stdOut.on('data', async (data: any) => {
 			tmpData += data.toString('utf8');
@@ -264,15 +264,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// sort open files by last modification, newest first
 		open_files = open_files.map(function (fileName) {
-			return {
-			  name: fileName,
-			  time: statSync(fileName).mtime.getTime()
-			};
-		  })
-		  .sort(function (a, b) {
-			return b.time - a.time; })
-		  .map(function (v) {
-			return v.name; });
+				return {
+					name: fileName,
+					time: statSync(fileName).mtime.getTime()
+				};
+			})
+			.sort(function (a, b) {
+				return b.time - a.time; })
+			.map(function (v) {
+				return v.name; });
 
 		// TODO add areFilesEqual to every step
 		const process = showMeld(open_files);
@@ -417,7 +417,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffFromFileListMultiple', (_, selectedFiles) => {
 		if (selectedFiles) {
-			let files = [];
+			const files = [];
 			console.log(typeof selectedFiles[0]);
 			for (let i=0; i < selectedFiles.length; i++) {
 				files.push(selectedFiles[i].fsPath);
@@ -455,7 +455,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (!_) {
 			if (window.activeTextEditor) {
-				let fileName = await getFileNameOfDocument(window.activeTextEditor.document);
+				const fileName = await getFileNameOfDocument(window.activeTextEditor.document);
 				if (fileName.tmp) {
 					addFileToRemove(fileName.name);
 				}
@@ -484,7 +484,7 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		let selectedFile = _.resourceUri._fsPath;
+		const selectedFile = _.resourceUri._fsPath;
 
 		filesToRemove = [];
 
