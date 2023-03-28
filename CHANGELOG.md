@@ -1,3 +1,6 @@
+## 1.3.4
+- Bump versions of some dependencies
+
 ## 1.3.3
 - fix issue with meld paths with spaces
 
