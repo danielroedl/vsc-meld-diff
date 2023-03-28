@@ -7,7 +7,6 @@ import { join, basename, dirname } from 'path';
 import * as streamEqual from 'stream-equal';
 import * as cp from 'child_process';
 
-let fillListDone = false;
 let filesToRemove: string[] = [];
 const filesToRemoveGlobal: string[] = [];
 const outputChannel = vscode.window.createOutputChannel(`MeldDiff`);
@@ -100,30 +99,6 @@ function showListAndDiff(current: string, possible_diffs: string[], filesToRemov
 			}
 		}
 	});
-}
-
-// workaround because there is no function to get all open editors from API
-function doIt(current: string, possible_diffs: string[], filesToRemove: string[]) {
-	if (fillListDone) {
-		showListAndDiff(current, possible_diffs, filesToRemove);
-	} else {
-		if (window.activeTextEditor) {
-			possible_diffs.push(window.activeTextEditor.document.fileName);
-		}
-		commands.executeCommand("workbench.action.nextEditor").then(_ => {
-			if (window.activeTextEditor) {
-				if (window.activeTextEditor.document.fileName != current) {
-					doIt(current, possible_diffs, filesToRemove);
-				} else {
-					fillListDone = true;
-					showListAndDiff(current, possible_diffs, filesToRemove);
-				}
-			} else {
-				// the window is not a text editor, skip it
-				doIt(current, possible_diffs, filesToRemove);
-			}
-		});
-	}
 }
 
 function rndName() {
@@ -222,25 +197,6 @@ async function runGit(selectedFile: string, gitCmd: string, prefix: string, call
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	const open_files_event: string[] = [];
-
-	vscode.workspace.onDidOpenTextDocument(event => {
-		// add file to array on opening
-		if (fillListDone && open_files_event.indexOf(event.fileName) === -1) {
-			if (existsSync(event.fileName)) {
-				open_files_event.push(event.fileName);
-			}
-		}
-	});
-
-	vscode.workspace.onDidCloseTextDocument(event => {
-		//remove file from list on closing
-		const index = open_files_event.indexOf(event.fileName);
-		if (fillListDone && index !== -1) {
-			open_files_event.splice(index, 1);
-		}
-	});
-
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffVisible', async () => {
 		let open_files: string[] = [];
 		filesToRemove = [];
@@ -294,7 +250,12 @@ export function activate(context: vscode.ExtensionContext) {
 			addFileToRemove(current.name);
 		}
 
-		doIt(current.name, open_files_event, filesToRemove);
+		// get all opened tabs
+		let open_files: string[] = [];
+		vscode.window.tabs.forEach((item) => {
+			open_files.push(item.document.fileName);
+		})
+		showListAndDiff(current.name, open_files, filesToRemove);
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffCurrentToOther', async () => {
