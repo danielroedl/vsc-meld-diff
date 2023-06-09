@@ -1,3 +1,6 @@
+## 1.4.0
+- Add setting to suppress error message if diff command ends with not zero exit code
+
 ## 1.3.4
 - Bump versions of some dependencies
 

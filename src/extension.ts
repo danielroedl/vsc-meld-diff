@@ -10,7 +10,14 @@ import * as cp from 'child_process';
 let fillListDone = false;
 let filesToRemove: string[] = [];
 const filesToRemoveGlobal: string[] = [];
-const outputChannel = vscode.window.createOutputChannel(`MeldDiff`);
+const outputChannel = window.createOutputChannel(`MeldDiff`);
+
+function printAndShowError(msg: string, showErrorMessages = true) {
+	outputChannel.appendLine(msg);
+	if (showErrorMessages) {
+		window.showErrorMessage(msg);
+	}
+}
 
 function addFileToRemove(file: string) {
 	filesToRemove.push(file);
@@ -21,7 +28,7 @@ function showMeld(files: string[]) {
 	let diffTool = vscode.workspace.getConfiguration('meld-diff').diffCommand;
 	if (diffTool.match(/(?<!\\) /)) {
 		// diffTool path includes not escaped spaces so it must be enclosed in quotes
-		if (! diffTool.match(/^(["']).*\1$/)) {
+		if (!diffTool.match(/^(["']).*\1$/)) {
 			// the diffTool is not enclosed in quotes
 			diffTool = '"' + diffTool + '"';
 		}
@@ -29,7 +36,7 @@ function showMeld(files: string[]) {
 	const diffFiles = files.filter(v => existsSync(v.toString())).slice(0, 3);
 
 	if (diffFiles.length < 2) {
-		window.showErrorMessage("Meld Diff Error: Minimum two files are needed to diff!");
+		printAndShowError("Meld Diff Error: Minimum two files are needed to diff!");
 		return;
 	}
 
@@ -42,7 +49,7 @@ function showMeld(files: string[]) {
 		directoriesInDiffFiles = directoriesInDiffFiles || stat.isDirectory();
 	});
 	if (fileInDiffFiles && directoriesInDiffFiles) {
-		window.showErrorMessage("Meld Diff Error: Meld can't compare files with directories!");
+		printAndShowError("Meld Diff Error: Meld can't compare files with directories!");
 		return;
 	}
 
@@ -70,9 +77,11 @@ function showMeld(files: string[]) {
 		(error: cp.ExecException | null, stdout: string, stderr: string) => {
 			if (error) {
 				if (error.message.match(/meld: not found/)) {
-					window.showErrorMessage("Meld Diff Error: Meld is not installed!");
+					printAndShowError("Meld Diff Error: Meld is not installed!");
 				} else {
-					window.showErrorMessage("Meld Diff Error: Error running diff command! StdErr: " + stderr);
+					printAndShowError(
+						"Meld Diff Error: Error running diff command! ErrorCode: " + error.code + " StdErr: " + stderr,
+						!vscode.workspace.getConfiguration('meld-diff').suppressErrorMessageWhenExitCodeNotZero);
 				}
 			}
 		});
@@ -177,7 +186,7 @@ async function getFileNameOfDocument(document: vscode.TextDocument) {
 	if (document.isUntitled) {
 		//compare untitled file or changed content of file instead of saved file
 		let prefix = "untitled_";
-		if (! document.isUntitled) {
+		if (!document.isUntitled) {
 			prefix = basename(document.fileName) + "_";
 		}
 		const documentContent = document.getText();
@@ -207,7 +216,7 @@ async function runGit(selectedFile: string, gitCmd: string, prefix: string, call
 			const staged = await writeTempFileOnDisk(tmpData, prefix + "_" + selectedFileBasename + "_");
 			addFileToRemove(staged);
 
-			if (! existsSync(staged)) {
+			if (!existsSync(staged)) {
 				callback("", "Meld Diff Error: Can't create temp file!");
 			}
 
@@ -215,7 +224,7 @@ async function runGit(selectedFile: string, gitCmd: string, prefix: string, call
 			callback(staged, null);
 		});
 	}).raw(
-		[ "show", gitCmd + selectedFileBasename ]
+		["show", gitCmd + selectedFileBasename]
 	).catch((err: any) => {
 		callback("", "Meld Diff Error: " + err);
 	});
@@ -258,21 +267,23 @@ export function activate(context: vscode.ExtensionContext) {
 			if (open_files.length == 0) {
 				fileCount = "No files are";
 			}
-			window.showErrorMessage("Meld Diff Error: Can't compare! " + fileCount + " visible in editor!");
+			printAndShowError("Meld Diff Error: Can't compare! " + fileCount + " visible in editor!");
 			return;
 		}
 
 		// sort open files by last modification, newest first
 		open_files = open_files.map(function (fileName) {
-				return {
-					name: fileName,
-					time: statSync(fileName).mtime.getTime()
-				};
-			})
+			return {
+				name: fileName,
+				time: statSync(fileName).mtime.getTime()
+			};
+		})
 			.sort(function (a, b) {
-				return b.time - a.time; })
+				return b.time - a.time;
+			})
 			.map(function (v) {
-				return v.name; });
+				return v.name;
+			});
 
 		// TODO add areFilesEqual to every step
 		const process = showMeld(open_files);
@@ -284,7 +295,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffCurrentToOtherOpen', async () => {
 		if (!window.activeTextEditor) {
-			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
+			printAndShowError("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
@@ -299,7 +310,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffCurrentToOther', async () => {
 		if (!window.activeTextEditor) {
-			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
+			printAndShowError("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
@@ -329,7 +340,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffWithClipboard', async () => {
 		const editor = window.activeTextEditor;
 		if (!editor) {
-			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
+			printAndShowError("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
@@ -379,12 +390,12 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffSavedVersion', async () => {
 		const editor = window.activeTextEditor;
 		if (!editor) {
-			window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
+			printAndShowError("Meld Diff Error: Current window is not an editor!");
 			return;
 		}
 
 		if (editor.document.isUntitled) {
-			window.showErrorMessage("Meld Diff Error: No saved version found to compare with!");
+			printAndShowError("Meld Diff Error: No saved version found to compare with!");
 			return;
 		}
 
@@ -397,7 +408,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		const editorContent = editor.document.getText();
 		const currentSaved = editor.document.fileName;
-		const current = await writeTempFileOnDisk(editorContent, basename(currentSaved)+"_changed_");
+		const current = await writeTempFileOnDisk(editorContent, basename(currentSaved) + "_changed_");
 		addFileToRemove(current);
 		const sameContent = await areFilesEqual([current, currentSaved]);
 
@@ -419,7 +430,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selectedFiles) {
 			const files = [];
 			console.log(typeof selectedFiles[0]);
-			for (let i=0; i < selectedFiles.length; i++) {
+			for (let i = 0; i < selectedFiles.length; i++) {
 				files.push(selectedFiles[i].fsPath);
 			}
 
@@ -434,12 +445,12 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!_) {
 			if (window.activeTextEditor) {
 				if (window.activeTextEditor.document.isUntitled) {
-					window.showErrorMessage("Meld Diff Error: Unsaved editors can not be selected for meld diff comparison!");
+					printAndShowError("Meld Diff Error: Unsaved editors can not be selected for meld diff comparison!");
 					return;
 				}
 				selected = window.activeTextEditor.document.fileName;
 			} else {
-				window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
+				printAndShowError("Meld Diff Error: Current window is not an editor!");
 				return;
 			}
 		} else {
@@ -461,7 +472,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 				path = fileName.name;
 			} else {
-				window.showErrorMessage("Meld Diff Error: Current window is not an editor!");
+				printAndShowError("Meld Diff Error: Current window is not an editor!");
 				return;
 			}
 		} else {
@@ -474,13 +485,13 @@ export function activate(context: vscode.ExtensionContext) {
 				process.on('exit', () => cleanupTmpFiles(files));
 			}
 		} else {
-			window.showErrorMessage("Meld Diff Error: First select a file to compare with!");
+			printAndShowError("Meld Diff Error: First select a file to compare with!");
 		}
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffScm', async (_) => {
-		if (! _) {
-			window.showErrorMessage("Meld Diff Error: First select a changed file in source control window and use context menu.");
+		if (!_) {
+			printAndShowError("Meld Diff Error: First select a changed file in source control window and use context menu.");
 			return;
 		}
 
@@ -493,7 +504,7 @@ export function activate(context: vscode.ExtensionContext) {
 				// get content of staging version of the selected file
 				runGit(selectedFile, ":./", "staged", (staged, err) => {
 					if (err) {
-						return window.showErrorMessage(err);
+						return printAndShowError(err);
 					}
 					// start meld
 					const process = showMeld([staged, selectedFile]);
@@ -508,12 +519,12 @@ export function activate(context: vscode.ExtensionContext) {
 				// get content of staging version of the selected file
 				runGit(selectedFile, ":./", "staged", (staged, err) => {
 					if (err) {
-						return window.showErrorMessage(err);
+						return printAndShowError(err);
 					}
 					// get content of head version of the selected file
 					runGit(selectedFile, "HEAD:./", "head", (head, err) => {
 						if (err) {
-							return window.showErrorMessage(err);
+							return printAndShowError(err);
 						}
 						// start meld
 						const process = showMeld([head, staged]);
@@ -529,12 +540,12 @@ export function activate(context: vscode.ExtensionContext) {
 				// get content of head version of the selected file
 				runGit(selectedFile, ":2:./", "current", (head, err) => {
 					if (err) {
-						return window.showErrorMessage(err);
+						return printAndShowError(err);
 					}
 					// get content of incoming version of the selected file
 					runGit(selectedFile, ":3:./", "incoming", (incoming, err) => {
 						if (err) {
-							return window.showErrorMessage(err);
+							return printAndShowError(err);
 						}
 						// start meld
 						const process = showMeld([head, selectedFile, incoming]);
@@ -555,7 +566,7 @@ export function activate(context: vscode.ExtensionContext) {
 				break;
 
 			default:
-				window.showErrorMessage("Meld Diff Error: Scm diff type " + _.type + " not supported.");
+				printAndShowError("Meld Diff Error: Scm diff type " + _.type + " not supported.");
 				break;
 		}
 	}));

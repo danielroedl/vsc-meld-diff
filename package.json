@@ -1,6 +1,6 @@
 {
 	"name": "meld-diff",
-	"version": "1.3.4",
+	"version": "1.4.0",
 	"displayName": "Meld Diff",
 	"description": "Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files, folders, clipboard or git changes from visual studio code directly.",
 	"publisher": "danielroedl",
@@ -149,6 +149,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Temporary files (created for clipboard or unsaved comparison) are deleted if visual studio code is closed before meld"
+				},
+				"meld-diff.suppressErrorMessageWhenExitCodeNotZero": {
+					"type": "boolean",
+					"default": false,
+					"description": "Suppress error message when exit code of diff command is greater than 0. Useful if diff program ends with error code by default (e. g. Beyond Compare)!\nError messages are still logged in Output tab."
 				}
 			}
 		}
