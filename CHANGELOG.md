@@ -1,3 +1,7 @@
+## 1.4.1
+- Handle new internal code of merge conflicts [issue 23](https://github.com/danielroedl/vsc-meld-diff/issues/23)
+- Add better error message if it's not possible to write temp file
+
 ## 1.4.0
 - Add setting to suppress error message if diff command ends with not zero exit code
 

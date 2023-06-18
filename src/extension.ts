@@ -158,7 +158,15 @@ function createRandomFile({ contents = '', prefix = 'tmp' }: { contents?: string
 }
 
 async function writeTempFileOnDisk(content: string, prefix = "tmp_"): Promise<string> {
-	return (await createRandomFile({ contents: content, prefix: prefix })).fsPath;
+	try {
+		const promise = await createRandomFile({ contents: content, prefix: prefix });
+		return promise.fsPath;
+	} catch (error: any) {
+		printAndShowError("Error writing tmp file!");
+		return new Promise((resolve) => {
+			resolve("Error writing tmp file!");
+		});
+	}
 }
 
 async function areFilesEqual(files: string[]): Promise<boolean> {
@@ -537,6 +545,7 @@ export function activate(context: vscode.ExtensionContext) {
 				break;
 
 			case 16: // merge conflicts
+			case 17: // merge conflicts from code version 1.79
 				// get content of head version of the selected file
 				runGit(selectedFile, ":2:./", "current", (head, err) => {
 					if (err) {
