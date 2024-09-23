@@ -56,6 +56,13 @@
 				"category": "Meld Diff"
 			},
 			{
+				"command": "meld-diff.openFromDiffView",
+				"title": "Open diff view in meld",
+				"enablement": "isInDiffEditor",
+				"category": "Meld Diff",
+				"icon": "$(diff)"
+			},
+			{
 				"command": "meld-diff.diffSavedVersion",
 				"title": "Compare current file with saved version using meld",
 				"category": "Meld Diff"
@@ -118,6 +125,13 @@
 					"command": "meld-diff.diffWithClipboard",
 					"group": "Meld Diff@1",
 					"when": "editorTextFocus"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "meld-diff.openFromDiffView",
+					"when": "isInDiffEditor",
+					"group": "navigation"
 				}
 			],
 			"scm/resourceState/context": [
