@@ -358,6 +358,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const bufferArray = await vscode.workspace.fs.readFile(tabInput.original); 
 		const originalContent = Buffer.from(bufferArray).toString();
 		const originalFile = await writeTempFileOnDisk(originalContent, "original_");
+		addFileToRemove(originalFile);
 		// here just take the saved version
 		const modifiedFile = tabInput.modified.fsPath;
 
