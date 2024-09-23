@@ -136,7 +136,7 @@ function doIt(current: string, possible_diffs: string[], filesToRemove: string[]
 }
 
 function rndName() {
-	return Math.random().toString(36).substr(2, 10);
+	return Math.random().toString(36).substring(2, 10);
 }
 
 /**
@@ -343,6 +343,29 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.openFromDiffView', async () => {
+		const tab : vscode.Tab | undefined = vscode.window.tabGroups.activeTabGroup.activeTab;
+		const tabInput = tab?.input;
+
+		if (!(tabInput instanceof vscode.TabInputTextDiff)) {
+			printAndShowError('Meld Diff Error: Current tab is not a text comparison');
+			return;
+		}
+
+		//tabInput.original.scheme is not 'file' but e.g. 'git', thus we have to write content to temp folder for comparison
+		const bufferArray = await vscode.workspace.fs.readFile(tabInput.original); 
+		const originalContent = Buffer.from(bufferArray).toString();
+		const originalFile = await writeTempFileOnDisk(originalContent, "original_");
+		// here just take the saved version
+		const modifiedFile = tabInput.modified.fsPath;
+
+		const process = showMeld([originalFile, modifiedFile]);
+		if (process && filesToRemove.length > 0) {
+			const files = [...filesToRemove];
+			process.on('exit', () => cleanupTmpFiles(files));
+		}
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.diffWithClipboard', async () => {
