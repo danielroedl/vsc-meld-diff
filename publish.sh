@@ -17,10 +17,10 @@ if [ "$ans" == "y" -o "$ans" == "Y" ]; then
 fi
 
 echo "> Check user login"
-if [ $(vsce ls-publishers | grep -ce "danielroedl") -ne 1 ]; then
+if [ $(npx @vscode/vsce ls-publishers | grep -ce "danielroedl") -ne 1 ]; then
     echo "> User not logged in"
     # login
-    vsce login danielroedl
+    npx @vscode/vsce login danielroedl
 else
     echo "> User logged in"
 fi
@@ -28,12 +28,12 @@ fi
 echo
 echo "> Run package"
 echo
-vsce package
+npx @vscode/vsce package
 echo
 echo "Start publishing to marketplace.visualstudio.com? [Enter to continue]"
 read
 echo
-vsce publish
+npx @vscode/vsce publish
 echo
 echo "> Publishing done"
 echo

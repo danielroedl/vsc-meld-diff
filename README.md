@@ -35,6 +35,7 @@ Table of contents:
   - [Compare all selected files/folders using meld](#compare-all-selected-filesfolders-using-meld-1)
 - [Usage with editor context menu](#usage-with-editor-context-menu)
 - [Usage with editor title context menu](#usage-with-editor-title-context-menu)
+- [Usage with vscode diff editor](#usage-with-vscode-diff-editor)
 - [Customize settings](#customize-settings)
   - [Use other tools than meld](#use-other-tools-than-meld)
   - [Don't delete temp files if visual studio code is closed before meld](#dont-delete-temp-files-if-visual-studio-code-is-closed-before-meld)
@@ -139,6 +140,13 @@ The command '*Compare with clipboard*' is also available in the context menu of 
 The commands '*Select for meld compare*', '*Compare with selected for meld compare*' and '*Compare current file with saved version*' are also available in the context menu of a text editor title.
 
 ![Editor context menu](images/editor_title_context_menu.png)
+
+# Usage with vscode diff editor
+Comparisons performed with the vscode internal diff editor can be shown with meld by pressing the icon in the context area of the editor at the top left.
+Not all types of diffs are supported (e.g. diff views created by other extensions).
+If the content of a diff editor is not supported please use the clipboard diff function.
+
+![Shortcut to open from vscsode diff editor](images/diff_editor.png)
 
 # Customize settings
 ## Use other tools than meld
