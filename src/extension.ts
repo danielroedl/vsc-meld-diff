@@ -346,26 +346,40 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('meld-diff.openFromDiffView', async () => {
-		const tab : vscode.Tab | undefined = vscode.window.tabGroups.activeTabGroup.activeTab;
+		const tab: vscode.Tab | undefined = vscode.window.tabGroups.activeTabGroup.activeTab;
 		const tabInput = tab?.input;
 
 		if (!(tabInput instanceof vscode.TabInputTextDiff)) {
 			printAndShowError('Meld Diff Error: Current tab is not a text comparison');
 			return;
 		}
-
-		//tabInput.original.scheme is not 'file' but e.g. 'git', thus we have to write content to temp folder for comparison
-		const bufferArray = await vscode.workspace.fs.readFile(tabInput.original); 
-		const originalContent = Buffer.from(bufferArray).toString();
-		const originalFile = await writeTempFileOnDisk(originalContent, "original_");
-		addFileToRemove(originalFile);
-		// here just take the saved version
-		const modifiedFile = tabInput.modified.fsPath;
-
-		const process = showMeld([originalFile, modifiedFile]);
-		if (process && filesToRemove.length > 0) {
-			const files = [...filesToRemove];
-			process.on('exit', () => cleanupTmpFiles(files));
+		let originalFile = tabInput.original.fsPath;
+		let modifiedFile = tabInput.modified.fsPath;
+		let current_scheme;
+		try {
+			if (tabInput.original.scheme != 'file') {
+				current_scheme = tabInput.original.scheme;
+				//tabInput.original.scheme is not 'file' but e.g. 'git', thus we have to write content to temp folder for comparison
+				const bufferArray = await vscode.workspace.fs.readFile(tabInput.original);
+				const originalContent = Buffer.from(bufferArray).toString();
+				originalFile = await writeTempFileOnDisk(originalContent, "original_");
+				addFileToRemove(originalFile);
+			}
+			if (tabInput.modified.scheme != 'file') {
+				current_scheme = tabInput.modified.scheme;
+				//tabInput.modified.scheme is not 'file' but e.g. 'git', thus we have to write content to temp folder for comparison
+				const bufferArray = await vscode.workspace.fs.readFile(tabInput.modified);
+				const modifiedContent = Buffer.from(bufferArray).toString();
+				modifiedFile = await writeTempFileOnDisk(modifiedContent, "modified_");
+				addFileToRemove(modifiedFile);
+			}
+			const process = showMeld([originalFile, modifiedFile]);
+			if (process && filesToRemove.length > 0) {
+				const files = [...filesToRemove];
+				process.on('exit', () => cleanupTmpFiles(files));
+			}
+		} catch (error) {
+			window.showInformationMessage('Meld Diff: Content of this diff view (' + current_scheme + ') not supported.');
 		}
 	}));
 
