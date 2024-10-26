@@ -142,7 +142,7 @@ The commands '*Select for meld compare*', '*Compare with selected for meld compa
 ![Editor context menu](images/editor_title_context_menu.png)
 
 # Usage with vscode diff editor
-Comparisons performed with the vscode internal diff editor can be shown with meld by pressing the icon in the context area of the editor at the top left.
+Comparisons performed with the vscode internal diff editor can be shown with meld by pressing the icon in the context area of the editor at the top right.
 Not all types of diffs are supported (e.g. diff views created by other extensions).
 If the content of a diff editor is not supported please use the clipboard diff function.
 
