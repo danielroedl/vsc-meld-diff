@@ -33,6 +33,7 @@ function showMeld(files: string[]) {
 			diffTool = '"' + diffTool + '"';
 		}
 	}
+	// TODO: Select Uri better than file path and check here if we need to create a tmp file from content or ask if the saved or unsaved version should be compared
 	const diffFiles = files.filter(v => existsSync(v.toString())).slice(0, 3);
 
 	if (diffFiles.length < 2) {
@@ -355,22 +356,41 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		let originalFile = tabInput.original.fsPath;
 		let modifiedFile = tabInput.modified.fsPath;
-		let current_scheme;
 		try {
 			if (tabInput.original.scheme != 'file') {
-				current_scheme = tabInput.original.scheme;
-				//tabInput.original.scheme is not 'file' but e.g. 'git', thus we have to write content to temp folder for comparison
-				const bufferArray = await vscode.workspace.fs.readFile(tabInput.original);
-				const originalContent = Buffer.from(bufferArray).toString();
-				originalFile = await writeTempFileOnDisk(originalContent, "original_");
+				// for other schemes than file we need to get the content from the editor
+				const visibleEditors = vscode.window.visibleTextEditors;
+				let originalContent = null;
+				for (let i = 0; i < visibleEditors.length; i++) {
+					const d = visibleEditors[i].document;
+					if (d.uri.toString() == tabInput.original.toString()) {
+						originalContent = d.getText();
+						break;
+					}
+				}
+				if (originalContent == null) {
+					window.showInformationMessage('Meld Diff: Content of this diff view (' + tabInput.original.scheme + ') not supported.');
+					return;
+				}
+				originalFile = await writeTempFileOnDisk(originalContent, basename(tabInput.original.fsPath) + "_original_");
 				addFileToRemove(originalFile);
 			}
 			if (tabInput.modified.scheme != 'file') {
-				current_scheme = tabInput.modified.scheme;
-				//tabInput.modified.scheme is not 'file' but e.g. 'git', thus we have to write content to temp folder for comparison
-				const bufferArray = await vscode.workspace.fs.readFile(tabInput.modified);
-				const modifiedContent = Buffer.from(bufferArray).toString();
-				modifiedFile = await writeTempFileOnDisk(modifiedContent, "modified_");
+				// for other schemes than file we need to get the content from the editor
+				const visibleEditors = vscode.window.visibleTextEditors;
+				let modifiedContent = null;
+				for (let i = 0; i < visibleEditors.length; i++) {
+					const d = visibleEditors[i].document;
+					if (d.uri.toString() == tabInput.modified.toString()) {
+						modifiedContent = d.getText();
+						break;
+					}
+				}
+				if (modifiedContent == null) {
+					window.showInformationMessage('Meld Diff: Content of this diff view (' + tabInput.modified.scheme + ') not supported.');
+					return;
+				}
+				modifiedFile = await writeTempFileOnDisk(modifiedContent, basename(tabInput.modified.fsPath) + "_modified_");
 				addFileToRemove(modifiedFile);
 			}
 			const process = showMeld([originalFile, modifiedFile]);
@@ -379,7 +399,7 @@ export function activate(context: vscode.ExtensionContext) {
 				process.on('exit', () => cleanupTmpFiles(files));
 			}
 		} catch (error) {
-			window.showInformationMessage('Meld Diff: Content of this diff view (' + current_scheme + ') not supported.');
+			window.showInformationMessage('Meld Diff: Content of this diff view not supported.');
 		}
 	}));
 
