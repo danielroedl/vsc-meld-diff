@@ -1,3 +1,6 @@
+## 1.5.1
+- Add handling of all diff view types
+
 ## 1.5.0
 - Add function to open diff from an internal vscode comparison in meld
 

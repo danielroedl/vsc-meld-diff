@@ -38,9 +38,11 @@ echo
 echo "> Publishing done"
 echo
 echo "Start packaging and publishing to open-vsx.org? [Enter to continue]"
-read
 echo
-npx ovsx publish -p $OVSX_TOKEN
+echo "Go to https://open-vsx.org/user-settings/extensions and upload new package"
+read
+#echo
+#npx ovsx publish -p $OVSX_TOKEN
 echo
 echo "> Publishing done"
 echo
